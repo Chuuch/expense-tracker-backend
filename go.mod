@@ -3,6 +3,8 @@ module github.com/chuuch/expense-tracker-backend
 go 1.25.0
 
 require (
+	aidanwoods.dev/go-paseto v1.6.0 // indirect
+	aidanwoods.dev/go-result v0.3.1 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/labstack/echo/v5 v5.0.4 // indirect
