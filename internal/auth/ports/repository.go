@@ -7,8 +7,8 @@ import (
 )
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, user *domain.User) error
-	GetByEmail(ctx context.Context, eail string) (*domain.User, error)
+	CreateUser(ctx context.Context, user *domain.User) (*domain.User, error)
+	GetByEmail(ctx context.Context, email string) (*domain.User, error)
 	GetByID(ctx context.Context, id string) (*domain.User, error)
 	UpdateUser(ctx context.Context, user *domain.User) error
 	DeleteUser(ctx context.Context, id string) error
