@@ -1,0 +1,10 @@
+services:
+  api:
+    restart: always
+
+  db:
+    restart: always
+  
+  redis:
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
