@@ -10,12 +10,14 @@ import (
 )
 
 type UserHandler struct {
-	usecase ports.UserUsecase
+	usecase      ports.UserUsecase
+	tokenUsecase ports.TokenUsecase
 }
 
-func NewUserHandler(usecase ports.UserUsecase) *UserHandler {
+func NewUserHandler(usecase ports.UserUsecase, tokenUsecase ports.TokenUsecase) *UserHandler {
 	return &UserHandler{
-		usecase: usecase,
+		usecase:      usecase,
+		tokenUsecase: tokenUsecase,
 	}
 }
 
@@ -60,10 +62,14 @@ func (h *UserHandler) Login(c *echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Invalid credentials"})
 	}
 
+	token, err := h.tokenUsecase.GenerateToken(user, 24*time.Hour)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to generate token"})
+	}
+
 	return c.JSON(http.StatusOK, LoginResponse{
-		User: mapUserToResponse(user),
-		// TODO: Implement paseto token generation
-		Token: "placeholder-paseto-token",
+		User:  mapUserToResponse(user),
+		Token: token,
 	})
 }
 
@@ -119,6 +125,12 @@ func mapUserToResponse(u *domain.User) UserResponse {
 		Email:        u.Email,
 		FirstName:    u.Profile.FirstName,
 		LastName:     u.Profile.LastName,
+		Phone:        u.Profile.Phone,
+		Address:      u.Profile.Address,
+		City:         u.Profile.City,
+		State:        u.Profile.State,
+		Zip:          u.Profile.Zip,
+		Country:      u.Profile.Country,
 		Role:         string(u.Role),
 		Status:       string(u.Status),
 		IsMFAEnabled: u.IsMFAEnabled,
