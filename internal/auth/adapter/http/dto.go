@@ -34,6 +34,12 @@ type UserResponse struct {
 	Email        string `json:"email"`
 	FirstName    string `json:"first_name"`
 	LastName     string `json:"last_name"`
+	Phone        string `json:"phone"`
+	Address      string `json:"address"`
+	City         string `json:"city"`
+	State        string `json:"state"`
+	Zip          string `json:"zip"`
+	Country      string `json:"country"`
 	Role         string `json:"role"`
 	Status       string `json:"status"`
 	IsMFAEnabled bool   `json:"is_mfa_enabled"`
