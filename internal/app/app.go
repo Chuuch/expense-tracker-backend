@@ -15,23 +15,31 @@ import (
 )
 
 type App struct {
-	echo         *echo.Echo
-	cfg          *config.Config
-	log          *zap.Logger
-	userHandler  *authHttp.UserHandler
-	tokenUsecase interfaces.TokenUsecase
+	echo                 *echo.Echo
+	cfg                  *config.Config
+	log                  *zap.Logger
+	userHandler          *authHttp.UserHandler
+	tokenUsecase         interfaces.TokenUsecase
+	accessTokenBlacklist interfaces.AccessTokenBlacklist
 }
 
-func NewApp(cfg *config.Config, log *zap.Logger, userHandler *authHttp.UserHandler, tokenUsecase interfaces.TokenUsecase) *App {
+func NewApp(
+	cfg *config.Config,
+	log *zap.Logger,
+	userHandler *authHttp.UserHandler,
+	tokenUsecase interfaces.TokenUsecase,
+	accessTokenBlacklist interfaces.AccessTokenBlacklist,
+) *App {
 	e := echo.New()
 	e.Validator = utils.NewEchoValidator()
 
 	return &App{
-		echo:         e,
-		cfg:          cfg,
-		log:          log,
-		userHandler:  userHandler,
-		tokenUsecase: tokenUsecase,
+		echo:                 e,
+		cfg:                  cfg,
+		log:                  log,
+		userHandler:          userHandler,
+		tokenUsecase:         tokenUsecase,
+		accessTokenBlacklist: accessTokenBlacklist,
 	}
 }
 
