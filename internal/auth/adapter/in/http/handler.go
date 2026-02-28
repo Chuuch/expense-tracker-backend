@@ -28,6 +28,9 @@ func (h *UserHandler) Register(c *echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid request body"})
 	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Validation failed"})
+	}
 
 	user, err := h.usecase.Register(
 		c.Request().Context(),
@@ -53,7 +56,10 @@ func (h *UserHandler) Register(c *echo.Context) error {
 func (h *UserHandler) Login(c *echo.Context) error {
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid credentils format"})
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid credentials format"})
+	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Validation failed"})
 	}
 
 	user, err := h.usecase.Login(
@@ -93,6 +99,9 @@ func (h *UserHandler) UpdateUser(c *echo.Context) error {
 	var req UpdateUserRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid request body"})
+	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Validation failed"})
 	}
 
 	user, err := h.usecase.UpdateUser(
