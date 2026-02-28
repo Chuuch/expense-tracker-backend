@@ -20,6 +20,10 @@ func LoggerMiddleware() echo.MiddlewareFunc {
 
 			stop := time.Now()
 			req := c.Request()
+			status := 0
+			if resp, err := echo.UnwrapResponse(c.Response()); err == nil {
+				status = resp.Status
+			}
 
 			userID, _ := c.Get(string(UserIDKey)).(string)
 			if userID == "" {
@@ -29,7 +33,7 @@ func LoggerMiddleware() echo.MiddlewareFunc {
 			logger.Log.Info("HTTP Request",
 				zap.String("method", req.Method),
 				zap.String("uri", req.RequestURI),
-				zap.Int("status", c.Request().Response.StatusCode),
+				zap.Int("status", status),
 				zap.Duration("latency", stop.Sub(start)),
 				zap.String("ip", c.RealIP()),
 				zap.String("user_id", userID),
