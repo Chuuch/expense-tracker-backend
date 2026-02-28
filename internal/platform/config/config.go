@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	App    AppConfig    `mapstructure:"APP_ENV"`
+	App    AppConfig    `mapstructure:",squash"`
 	Server ServerConfig `mapstructure:",squash"`
 	DB     DBConfig     `mapstructure:",squash"`
 	Auth   AuthConfig   `mapstructure:",squash"`
@@ -18,7 +18,7 @@ type Config struct {
 
 type AppConfig struct {
 	AppEnv  string `mapstructure:"APP_ENV"`
-	Version string `mapstructure:"VERSION"`
+	Version string `mapstructure:"APP_VERSION"`
 }
 
 type ServerConfig struct {
@@ -54,28 +54,16 @@ type RedisConfig struct {
 func Load() (*Config, error) {
 	v := viper.New()
 
-	// Set defaults
-	v.SetDefault("SERVER_PORT", ":8080")
-	v.SetDefault("SERVER_READ_TIMEOUT", 5*time.Second)
-	v.SetDefault("SERVER_WRITE_TIMEOUT", 10*time.Second)
-	v.SetDefault("SERVER_IDLE_TIMEOUT", 120*time.Second)
-	v.SetDefault("DB_MAX_OPEN_CONNS", 25)
-	v.SetDefault("AUTH_ACCESS_TOKEN_TTL", 15*time.Minute)
-	v.SetDefault("AUTH_REFRESH_TOKEN_TTL", 168*time.Hour) // 7 days
-
-	configFile := v.GetString("APP_CONFIG_FILE")
-	if configFile == "" {
-		configFile = "config/app.development.yaml"
-	}
-	v.SetConfigFile(configFile)
+	v.SetConfigName(".env.development")
+	v.SetConfigType("env")
+	v.AddConfigPath(".")
+	v.AutomaticEnv()
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return nil, fmt.Errorf("config file not found: %w", err)
 		}
 	}
-
-	v.AutomaticEnv()
 
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
