@@ -1,0 +1,7 @@
+# config/app.production.yaml (new file)
+server:
+  read_timeout: 5s
+  write_timeout: 10s
+  idle_timeout: 120s
+  allowed_origins:
+    - https://your-frontend-domain.com

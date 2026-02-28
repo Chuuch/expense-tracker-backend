@@ -1,10 +1,19 @@
+# docker-compose.prod.yml (replace entire file - production)
 services:
   api:
+    env_file:
+      - .env.production
     restart: always
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
 
   db:
+    env_file:
+      - .env.production
     restart: always
-  
+
   redis:
+    env_file:
+      - .env.production
     restart: always
     command: redis-server --requirepass ${REDIS_PASSWORD}
