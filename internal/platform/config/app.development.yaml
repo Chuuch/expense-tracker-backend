@@ -1,0 +1,8 @@
+# config/app.development.yaml (new file)
+server:
+  read_timeout: 5s
+  write_timeout: 10s
+  idle_timeout: 120s
+  allowed_origins:
+    - http://localhost:3000
+    - exp://localhost:8081
