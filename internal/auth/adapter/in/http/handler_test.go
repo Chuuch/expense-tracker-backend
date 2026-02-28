@@ -14,6 +14,7 @@ import (
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces/mocks"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
+	"github.com/chuuch/expense-tracker-backend/utils"
 	"github.com/labstack/echo/v5"
 	"go.uber.org/mock/gomock"
 )
@@ -38,7 +39,7 @@ func TestRegister_Success_Returns201(t *testing.T) {
 	tokenUC := mocks.NewMockTokenUsecase(ctrl)
 
 	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
-	e := echo.New()
+	e := newEchoWithValidator()
 
 	body := map[string]any{
 		"email":      "test@example.com",
@@ -98,7 +99,7 @@ func TestRegister_Duplicate_Returns409(t *testing.T) {
 	tokenUC := mocks.NewMockTokenUsecase(ctrl)
 
 	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
-	e := echo.New()
+	e := newEchoWithValidator()
 
 	body := `{"email":"test@example.com","password":"Password123!","first_name":"A","last_name":"B","phone":"123"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewBufferString(body))
@@ -127,7 +128,7 @@ func TestRegister_BindError_Returns400(t *testing.T) {
 	tokenUC := mocks.NewMockTokenUsecase(ctrl)
 
 	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
-	e := echo.New()
+	e := newEchoWithValidator()
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewBufferString("{invalid-json"))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -150,7 +151,7 @@ func TestLogin_InvalidCredentials_Returns401(t *testing.T) {
 	tokenUC := mocks.NewMockTokenUsecase(ctrl)
 
 	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
-	e := echo.New()
+	e := newEchoWithValidator()
 
 	reqBody := `{"email":"test@example.com","password":"wrong"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewBufferString(reqBody))
@@ -180,7 +181,7 @@ func TestLogin_Success_Returns200AndToken(t *testing.T) {
 
 	cfg := testConfig()
 	h := authhttp.NewUserHandler(userUC, tokenUC, cfg)
-	e := echo.New()
+	e := newEchoWithValidator()
 
 	reqBody := `{"email":"test@example.com","password":"Password123!"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewBufferString(reqBody))
@@ -228,7 +229,7 @@ func TestGetByID_NotFound_Returns404(t *testing.T) {
 	tokenUC := mocks.NewMockTokenUsecase(ctrl)
 
 	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
-	e := echo.New()
+	e := newEchoWithValidator()
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/users/missing-id", nil)
 	rec := httptest.NewRecorder()
@@ -259,7 +260,7 @@ func TestDeleteUser_NotFound_Returns404(t *testing.T) {
 	tokenUC := mocks.NewMockTokenUsecase(ctrl)
 
 	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
-	e := echo.New()
+	e := newEchoWithValidator()
 
 	req := httptest.NewRequest(http.MethodDelete, "/api/v1/users/missing-id", nil)
 	rec := httptest.NewRecorder()
@@ -291,7 +292,7 @@ func TestRegister_UsesRequestContext(t *testing.T) {
 	tokenUC := mocks.NewMockTokenUsecase(ctrl)
 
 	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
-	e := echo.New()
+	e := newEchoWithValidator()
 
 	reqBody := `{"email":"test@example.com","password":"Password123!","first_name":"T","last_name":"U","phone":"123"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewBufferString(reqBody))
@@ -321,5 +322,236 @@ func TestRegister_UsesRequestContext(t *testing.T) {
 	}
 	if rec.Code != http.StatusCreated {
 		t.Fatalf("expected 201, got %d", rec.Code)
+	}
+}
+
+type refreshUsecaseStub struct {
+	issueTokenPairFn func(ctx context.Context, user *domain.User) (*domain.TokenPair, error)
+	refreshFn        func(ctx context.Context, rawRefreshToken string) (*domain.TokenPair, error)
+	revokeFn         func(ctx context.Context, rawRefreshToken string) error
+	deleteExpiredFn  func(ctx context.Context) error
+}
+
+func (s *refreshUsecaseStub) IssueTokenPair(ctx context.Context, user *domain.User) (*domain.TokenPair, error) {
+	if s.issueTokenPairFn != nil {
+		return s.issueTokenPairFn(ctx, user)
+	}
+	return nil, nil
+}
+
+func (s *refreshUsecaseStub) Refresh(ctx context.Context, rawRefreshToken string) (*domain.TokenPair, error) {
+	if s.refreshFn != nil {
+		return s.refreshFn(ctx, rawRefreshToken)
+	}
+	return nil, nil
+}
+
+func (s *refreshUsecaseStub) Revoke(ctx context.Context, rawRefreshToken string) error {
+	if s.revokeFn != nil {
+		return s.revokeFn(ctx, rawRefreshToken)
+	}
+	return nil
+}
+
+func (s *refreshUsecaseStub) DeleteExpired(ctx context.Context) error {
+	if s.deleteExpiredFn != nil {
+		return s.deleteExpiredFn(ctx)
+	}
+	return nil
+}
+
+func newEchoWithValidator() *echo.Echo {
+	e := echo.New()
+	e.Validator = utils.NewEchoValidator()
+	return e
+}
+
+func TestRefresh_NotConfigured_Returns501(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig()) // no refresh usecase wired
+	e := newEchoWithValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/refresh", bytes.NewBufferString(`{"refresh_token":"rt-old"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if err := h.Refresh(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusNotImplemented {
+		t.Fatalf("expected status 501, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestRefresh_InvalidToken_Returns401(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	refreshUC := &refreshUsecaseStub{
+		refreshFn: func(ctx context.Context, raw string) (*domain.TokenPair, error) {
+			if raw != "rt-old" {
+				t.Fatalf("expected refresh token rt-old, got %q", raw)
+			}
+			return nil, usecase.ErrRefreshTokenInvalid
+		},
+	}
+
+	h := authhttp.NewUserHandlerWithRefresh(userUC, tokenUC, refreshUC, testConfig())
+	e := newEchoWithValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/refresh", bytes.NewBufferString(`{"refresh_token":"rt-old"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if err := h.Refresh(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status 401, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestRefresh_Success_Returns200AndPair(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	refreshUC := &refreshUsecaseStub{
+		refreshFn: func(ctx context.Context, raw string) (*domain.TokenPair, error) {
+			if raw != "rt-old" {
+				t.Fatalf("expected refresh token rt-old, got %q", raw)
+			}
+			return &domain.TokenPair{
+				AccessToken:  "at-new",
+				RefreshToken: "rt-new",
+			}, nil
+		},
+	}
+
+	h := authhttp.NewUserHandlerWithRefresh(userUC, tokenUC, refreshUC, testConfig())
+	e := newEchoWithValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/refresh", bytes.NewBufferString(`{"refresh_token":"rt-old"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if err := h.Refresh(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d body=%s", rec.Code, rec.Body.String())
+	}
+
+	var resp authhttp.RefreshResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+	if resp.Token != "at-new" || resp.RefreshToken != "rt-new" {
+		t.Fatalf("unexpected response: %+v", resp)
+	}
+}
+
+func TestLogout_NotConfigured_Returns501(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig()) // no refresh usecase wired
+	e := newEchoWithValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/logout", bytes.NewBufferString(`{"refresh_token":"rt-old"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if err := h.Logout(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusNotImplemented {
+		t.Fatalf("expected status 501, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestLogout_InvalidToken_Returns401(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	refreshUC := &refreshUsecaseStub{
+		revokeFn: func(ctx context.Context, raw string) error {
+			if raw != "rt-old" {
+				t.Fatalf("expected refresh token rt-old, got %q", raw)
+			}
+			return usecase.ErrRefreshTokenInvalid
+		},
+	}
+
+	h := authhttp.NewUserHandlerWithRefresh(userUC, tokenUC, refreshUC, testConfig())
+	e := newEchoWithValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/logout", bytes.NewBufferString(`{"refresh_token":"rt-old"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if err := h.Logout(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status 401, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestLogout_Success_Returns204(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	called := false
+	refreshUC := &refreshUsecaseStub{
+		revokeFn: func(ctx context.Context, raw string) error {
+			called = true
+			if raw != "rt-old" {
+				t.Fatalf("expected refresh token rt-old, got %q", raw)
+			}
+			return nil
+		},
+	}
+
+	h := authhttp.NewUserHandlerWithRefresh(userUC, tokenUC, refreshUC, testConfig())
+	e := newEchoWithValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/logout", bytes.NewBufferString(`{"refresh_token":"rt-old"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if err := h.Logout(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("expected status 204, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	if !called {
+		t.Fatal("expected revoke to be called")
 	}
 }
