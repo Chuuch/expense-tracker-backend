@@ -1,0 +1,66 @@
+package app
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"time"
+
+	authHttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
+	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
+	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
+	"github.com/labstack/echo/v5"
+	"go.uber.org/zap"
+)
+
+type App struct {
+	echo         *echo.Echo
+	cfg          *config.Config
+	log          *zap.Logger
+	userHandler  *authHttp.UserHandler
+	tokenUsecase interfaces.TokenUsecase
+}
+
+func NewApp(cfg *config.Config, log *zap.Logger, userHandler *authHttp.UserHandler, tokenUsecase interfaces.TokenUsecase) *App {
+	return &App{
+		echo:         echo.New(),
+		cfg:          cfg,
+		log:          log,
+		userHandler:  userHandler,
+		tokenUsecase: tokenUsecase,
+	}
+}
+
+func (a *App) Run(ctx context.Context) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	a.echo.Use(authHttp.LoggerMiddleware())
+	a.registerRoutes()
+
+	srv := &http.Server{
+		Addr:         a.cfg.Server.Port,
+		Handler:      a.echo,
+		ReadTimeout:  a.cfg.Server.ReadTimeout,
+		WriteTimeout: a.cfg.Server.WriteTimeout,
+		IdleTimeout:  a.cfg.Server.IdleTimeout,
+	}
+
+	errChan := make(chan error, 1)
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errChan <- err
+		}
+		close(errChan)
+	}()
+
+	select {
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		return srv.Shutdown(shutdownCtx)
+	case err := <-errChan:
+		return err
+	}
+}

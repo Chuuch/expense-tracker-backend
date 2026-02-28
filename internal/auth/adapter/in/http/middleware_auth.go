@@ -5,21 +5,20 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/chuuch/expense-tracker-backend/internal/auth/ports"
+	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
 	"github.com/labstack/echo/v5"
 )
 
 type contextKey string
 
-const (
-	UserIDKey contextKey = "user_id"
-)
+const UserIDKey contextKey = "user_id"
+
 const (
 	AuthHeader = "Authorization"
 	AuthScheme = "Bearer"
 )
 
-func AuthMiddleware(tokenUsecase ports.TokenUsecase) echo.MiddlewareFunc {
+func AuthMiddleware(tokenUsecase interfaces.TokenUsecase) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			authHeader := c.Request().Header.Get(AuthHeader)

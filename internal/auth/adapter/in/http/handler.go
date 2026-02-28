@@ -2,22 +2,23 @@ package http
 
 import (
 	"net/http"
-	"time"
 
-	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
-	"github.com/chuuch/expense-tracker-backend/internal/auth/ports"
+	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
+	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
 	"github.com/labstack/echo/v5"
 )
 
 type UserHandler struct {
-	usecase      ports.UserUsecase
-	tokenUsecase ports.TokenUsecase
+	usecase      interfaces.UserUsecase
+	tokenUsecase interfaces.TokenUsecase
+	cfg          *config.Config
 }
 
-func NewUserHandler(usecase ports.UserUsecase, tokenUsecase ports.TokenUsecase) *UserHandler {
+func NewUserHandler(usecase interfaces.UserUsecase, tokenUsecase interfaces.TokenUsecase, cfg *config.Config) *UserHandler {
 	return &UserHandler{
 		usecase:      usecase,
 		tokenUsecase: tokenUsecase,
+		cfg:          cfg,
 	}
 }
 
@@ -44,7 +45,7 @@ func (h *UserHandler) Register(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 	}
 
-	return c.JSON(http.StatusBadRequest, mapUserToResponse(user))
+	return c.JSON(http.StatusCreated, mapUserToResponse(user))
 }
 
 func (h *UserHandler) Login(c *echo.Context) error {
@@ -62,7 +63,7 @@ func (h *UserHandler) Login(c *echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Invalid credentials"})
 	}
 
-	token, err := h.tokenUsecase.GenerateToken(user, 24*time.Hour)
+	token, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to generate token"})
 	}
@@ -117,24 +118,4 @@ func (h *UserHandler) DeleteUser(c *echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
-}
-
-func mapUserToResponse(u *domain.User) UserResponse {
-	return UserResponse{
-		ID:           u.ID,
-		Email:        u.Email,
-		FirstName:    u.Profile.FirstName,
-		LastName:     u.Profile.LastName,
-		Phone:        u.Profile.Phone,
-		Address:      u.Profile.Address,
-		City:         u.Profile.City,
-		State:        u.Profile.State,
-		Zip:          u.Profile.Zip,
-		Country:      u.Profile.Country,
-		Role:         string(u.Role),
-		Status:       string(u.Status),
-		IsMFAEnabled: u.IsMFAEnabled,
-		CreatedAt:    u.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:    u.UpdatedAt.UTC().Format(time.RFC3339),
-	}
 }

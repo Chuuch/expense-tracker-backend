@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
-	"github.com/chuuch/expense-tracker-backend/internal/auth/ports"
+	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
 	"github.com/chuuch/expense-tracker-backend/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -19,10 +19,10 @@ var (
 )
 
 type UserUsecase struct {
-	userRepo ports.UserRepository
+	userRepo interfaces.UserRepository
 }
 
-func NewUserUsecase(userRepo ports.UserRepository) *UserUsecase {
+func NewUserUsecase(userRepo interfaces.UserRepository) *UserUsecase {
 	return &UserUsecase{
 		userRepo: userRepo,
 	}

@@ -1,7 +1,8 @@
-package ports
+package interfaces
 
 import (
 	"context"
+	"time"
 
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
 )
@@ -12,4 +13,9 @@ type UserRepository interface {
 	GetByID(ctx context.Context, id string) (*domain.User, error)
 	UpdateUser(ctx context.Context, user *domain.User) error
 	DeleteUser(ctx context.Context, id string) error
+}
+
+type TokenUsecase interface {
+	GenerateToken(user *domain.User, duration time.Duration) (string, error)
+	VerifyToken(token string) (string, error)
 }
