@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	authHttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
+	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
 	"github.com/labstack/echo/v5"
 )
 
@@ -17,8 +18,8 @@ func (a *App) registerRoutes() {
 	auth.POST("/login", a.userHandler.Login)
 
 	users := a.echo.Group("/api/v1/users", authHttp.AuthMiddleware(a.tokenUsecase))
-	users.GET("/:id", a.userHandler.GetByID)
-	users.PUT("/:id", a.userHandler.UpdateUser)
-	users.DELETE("/:id", a.userHandler.DeleteUser)
+	users.GET("/:id", a.userHandler.GetByID, authHttp.RequireSelfOrRoles(domain.RoleAdmin, domain.RoleSupport))
+	users.PUT("/:id", a.userHandler.UpdateUser, authHttp.RequireSelfOrRoles(domain.RoleAdmin, domain.RoleSupport))
+	users.DELETE("/:id", a.userHandler.DeleteUser, authHttp.RequireSelfOrRoles(domain.RoleAdmin))
 
 }
