@@ -39,7 +39,6 @@ func main() {
 	// Init DI
 	q := postgresdb.New(db)
 	userRepo := postgres.NewUserRepository(q)
-	userUseCase := authusecase.NewUserUsecase(userRepo)
 
 	// Init token usecase
 	tokenUseCase, err := paseto.NewPasetoUsecase(cfg.Auth.PasetoSymmetricKey)
@@ -47,8 +46,18 @@ func main() {
 		log.Fatalf("paseto usecase initialization failed: %v", err)
 	}
 
+	refreshRepo := postgres.NewRefreshTokenRepository(q)
+
+	userUsecase := authusecase.NewUserUsecase(userRepo)
+	refreshUsecase := authusecase.NewRefreshTokenUsecase(
+		refreshRepo,
+		userRepo,
+		tokenUseCase,
+		cfg,
+	)
+
 	// Init user handler
-	userHandler := authhttp.NewUserHandler(userUseCase, tokenUseCase, cfg)
+	userHandler := authhttp.NewUserHandlerWithRefresh(userUsecase, tokenUseCase, refreshUsecase, cfg)
 
 	// Init application
 	application := app.NewApp(cfg, logger.Log, userHandler, tokenUseCase)
