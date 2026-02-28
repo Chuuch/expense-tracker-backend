@@ -155,10 +155,10 @@ func (mr *MockTokenUsecaseMockRecorder) GenerateToken(user, duration any) *gomoc
 }
 
 // VerifyToken mocks base method.
-func (m *MockTokenUsecase) VerifyToken(token string) (string, error) {
+func (m *MockTokenUsecase) VerifyToken(token string) (*domain.TokenClaims, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyToken", token)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(*domain.TokenClaims)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
