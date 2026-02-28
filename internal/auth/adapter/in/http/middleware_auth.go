@@ -41,7 +41,7 @@ func AuthMiddleware(tokenUsecase interfaces.TokenUsecase) echo.MiddlewareFunc {
 			}
 
 			c.Set(string(UserIDKey), claims.UserID)
-			c.Set(string(RoleKey), claims.Role)
+			c.Set(string(RoleKey), string(claims.Role)) // store as string consistently
 
 			ctx := context.WithValue(c.Request().Context(), UserIDKey, claims.UserID)
 			ctx = context.WithValue(ctx, RoleKey, string(claims.Role))
