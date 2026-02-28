@@ -22,20 +22,22 @@ const (
 	AuthScheme = "Bearer"
 )
 
-func AuthMiddleware(tokenUsecase interfaces.TokenUsecase) echo.MiddlewareFunc {
+func AuthMiddleware(tokenUsecase interfaces.TokenUsecase, blacklist interfaces.AccessTokenBlacklist) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-			authHeader := c.Request().Header.Get(AuthHeader)
-			if authHeader == "" {
+			token, ok := extractBearerToken(c.Request().Header.Get(AuthHeader))
+			if !ok {
 				return c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Missing authorization header"})
 			}
 
-			parts := strings.Split(authHeader, " ")
-			if len(parts) != 2 || !strings.EqualFold(parts[0], AuthScheme) {
-				return c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Invalid authorization header"})
+			if blacklist != nil {
+				blacklisted, err := blacklist.Contains(c.Request().Context(), token)
+				if err != nil || blacklisted {
+					return c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Invalid or expired token"})
+				}
 			}
 
-			claims, err := tokenUsecase.VerifyToken(parts[1])
+			claims, err := tokenUsecase.VerifyToken(token)
 			if err != nil {
 				return c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Invalid or expired token"})
 			}
@@ -85,4 +87,17 @@ func GetUserIDFromContext(ctx context.Context) (string, bool) {
 func GetRoleFromContext(ctx context.Context) (domain.UserRole, bool) {
 	role, ok := ctx.Value(RoleKey).(string)
 	return domain.UserRole(role), ok
+}
+
+func extractBearerToken(authHeader string) (string, bool) {
+	if authHeader == "" {
+		return "", false
+	}
+
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || !strings.EqualFold(parts[0], AuthScheme) {
+		return "", false
+	}
+
+	return strings.TrimSpace(parts[1]), parts[1] != ""
 }
