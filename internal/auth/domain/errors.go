@@ -13,4 +13,8 @@ var (
 	ErrUserNotPending     = errors.New("user not pending")
 	ErrUserNotAdmin       = errors.New("user not admin")
 	ErrUserNotSupport     = errors.New("user not support")
+
+	ErrRefreshTokenInvalid = errors.New("refresh token invalid")
+	ErrRefreshTokenExpired = errors.New("refresh token expired")
+	ErrRefreshTokenRevoked = errors.New("refresh token revoked")
 )
