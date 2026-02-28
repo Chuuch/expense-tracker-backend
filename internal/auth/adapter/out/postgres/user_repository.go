@@ -46,7 +46,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *domain.User) (*do
 	return toDomainUser(row), nil
 }
 
-func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	row, err := r.q.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -57,7 +57,7 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 	return toDomainUser(row), nil
 }
 
-func (r *UserRepository) GetUserByID(ctx context.Context, id string) (*domain.User, error) {
+func (r *UserRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
 	row, err := r.q.GetUserByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
