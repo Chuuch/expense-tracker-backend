@@ -17,5 +17,5 @@ type UserRepository interface {
 
 type TokenUsecase interface {
 	GenerateToken(user *domain.User, duration time.Duration) (string, error)
-	VerifyToken(token string) (string, error)
+	VerifyToken(token string) (*domain.TokenClaims, error)
 }
