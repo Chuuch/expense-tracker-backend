@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	authhttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
+	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces/mocks"
 	"github.com/labstack/echo/v5"
 	"go.uber.org/mock/gomock"
@@ -77,7 +78,7 @@ func TestAuthMiddleware_InvalidToken_Returns401(t *testing.T) {
 
 	tokenUC.EXPECT().
 		VerifyToken("bad-token").
-		Return("", errors.New("invalid token")).
+		Return(nil, errors.New("invalid token")).
 		Times(1)
 
 	next := func(c *echo.Context) error {
@@ -107,7 +108,10 @@ func TestAuthMiddleware_ValidToken_CallsNextAndSetsUserID(t *testing.T) {
 
 	tokenUC.EXPECT().
 		VerifyToken("good-token").
-		Return("user-123", nil).
+		Return(&domain.TokenClaims{
+			UserID: "user-123",
+			Role:   domain.RoleUser,
+		}, nil).
 		Times(1)
 
 	nextCalled := false
