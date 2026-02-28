@@ -22,6 +22,11 @@ type RefreshTokenRepository interface {
 	DeleteExpired(ctx context.Context) error
 }
 
+type AccessTokenBlacklist interface {
+	Add(ctx context.Context, token string, ttl time.Duration) error
+	Contains(ctx context.Context, token string) (bool, error)
+}
+
 type TokenUsecase interface {
 	GenerateToken(user *domain.User, duration time.Duration) (string, error)
 	VerifyToken(token string) (*domain.TokenClaims, error)
