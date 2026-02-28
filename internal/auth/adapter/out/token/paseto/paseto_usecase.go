@@ -36,19 +36,27 @@ func (u *PasetoUsecase) GenerateToken(user *domain.User, duration time.Duration)
 	return token.V4Encrypt(u.key, nil), nil
 }
 
-func (u *PasetoUsecase) VerifyToken(signedToken string) (string, error) {
+func (u *PasetoUsecase) VerifyToken(signedToken string) (*domain.TokenClaims, error) {
 	parser := paseto.NewParser()
 
 	token, err := parser.ParseV4Local(u.key, signedToken, nil)
 	if err != nil {
-		return "", fmt.Errorf("token verification failed: %w", err)
+		return nil, fmt.Errorf("token verification failed: %w", err)
 	}
 
 	userID, err := token.GetString("user_id")
 	if err != nil {
-		return "", fmt.Errorf("user_id claim not found")
+		return nil, fmt.Errorf("user_id claim not found")
 	}
 
-	return userID, nil
+	role, err := token.GetString("role")
+	if err != nil {
+		return nil, fmt.Errorf("role claim not found")
+	}
+
+	return &domain.TokenClaims{
+		UserID: userID,
+		Role:   domain.UserRole(role),
+	}, nil
 
 }
