@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"os/signal"
 	"syscall"
@@ -10,12 +11,14 @@ import (
 	"github.com/chuuch/expense-tracker-backend/internal/app"
 	authhttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/postgres"
+	authredis "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/redis"
 	postgresdb "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/postgres/sqlc"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/token/paseto"
 	authusecase "github.com/chuuch/expense-tracker-backend/internal/auth/usecase"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
 	"github.com/chuuch/expense-tracker-backend/pkg/logger"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -56,11 +59,20 @@ func main() {
 		cfg,
 	)
 
+	redisClient := goredis.NewClient(&goredis.Options{
+		Addr:     fmt.Sprintf("%s:%s", cfg.Redis.Host, cfg.Redis.Port),
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	defer redisClient.Close()
+
+	accessTokenBlacklist := authredis.NewAccessTokenBlacklistRepository(redisClient)
+
 	// Init user handler
-	userHandler := authhttp.NewUserHandlerWithRefresh(userUsecase, tokenUseCase, refreshUsecase, cfg)
+	userHandler := authhttp.NewUserHandlerWithRefresh(userUsecase, tokenUseCase, refreshUsecase, cfg, accessTokenBlacklist)
 
 	// Init application
-	application := app.NewApp(cfg, logger.Log, userHandler, tokenUseCase)
+	application := app.NewApp(cfg, logger.Log, userHandler, tokenUseCase, accessTokenBlacklist)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
