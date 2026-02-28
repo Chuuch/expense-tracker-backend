@@ -55,7 +55,7 @@ func Load() (*Config, error) {
 	v := viper.New()
 
 	// Set defaults
-	v.SetDefault("SERVER_PORT", "8080")
+	v.SetDefault("SERVER_PORT", ":8080")
 	v.SetDefault("SERVER_READ_TIMEOUT", 5*time.Second)
 	v.SetDefault("SERVER_WRITE_TIMEOUT", 10*time.Second)
 	v.SetDefault("SERVER_IDLE_TIMEOUT", 120*time.Second)
@@ -63,17 +63,19 @@ func Load() (*Config, error) {
 	v.SetDefault("AUTH_ACCESS_TOKEN_TTL", 15*time.Minute)
 	v.SetDefault("AUTH_REFRESH_TOKEN_TTL", 168*time.Hour) // 7 days
 
-	// File & Env setup
-	v.SetConfigName(".env")
-	v.SetConfigType("env")
-	v.AddConfigPath(".")
-	v.AutomaticEnv() // Env vars override .env file
+	configFile := v.GetString("APP_CONFIG_FILE")
+	if configFile == "" {
+		configFile = "config/app.development.yaml"
+	}
+	v.SetConfigFile(configFile)
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return nil, fmt.Errorf("config file not found: %w", err)
 		}
 	}
+
+	v.AutomaticEnv()
 
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
