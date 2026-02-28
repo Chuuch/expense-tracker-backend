@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 
+	httperrors "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http/errors"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
 	"github.com/labstack/echo/v5"
@@ -25,7 +26,7 @@ func NewUserHandler(usecase interfaces.UserUsecase, tokenUsecase interfaces.Toke
 func (h *UserHandler) Register(c *echo.Context) error {
 	var req RegisterRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid request body"})
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid request body"})
 	}
 
 	user, err := h.usecase.Register(
@@ -42,7 +43,8 @@ func (h *UserHandler) Register(c *echo.Context) error {
 		req.Country,
 	)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		status, resp := httperrors.Map(err)
+		return c.JSON(status, resp)
 	}
 
 	return c.JSON(http.StatusCreated, mapUserToResponse(user))
@@ -51,7 +53,7 @@ func (h *UserHandler) Register(c *echo.Context) error {
 func (h *UserHandler) Login(c *echo.Context) error {
 	var req LoginRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid credentils format"})
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid credentils format"})
 	}
 
 	user, err := h.usecase.Login(
@@ -60,12 +62,13 @@ func (h *UserHandler) Login(c *echo.Context) error {
 		req.Password,
 	)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Invalid credentials"})
+		status, resp := httperrors.Map(err)
+		return c.JSON(status, resp)
 	}
 
 	token, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to generate token"})
+		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to generate token"})
 	}
 
 	return c.JSON(http.StatusOK, LoginResponse{
@@ -78,7 +81,8 @@ func (h *UserHandler) GetByID(c *echo.Context) error {
 	id := c.Param("id")
 	user, err := h.usecase.GetByID(c.Request().Context(), id)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, ErrorResponse{Error: "User not found"})
+		status, resp := httperrors.Map(err)
+		return c.JSON(status, resp)
 	}
 
 	return c.JSON(http.StatusOK, mapUserToResponse(user))
@@ -88,7 +92,7 @@ func (h *UserHandler) UpdateUser(c *echo.Context) error {
 	id := c.Param("id")
 	var req UpdateUserRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid request body"})
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid request body"})
 	}
 
 	user, err := h.usecase.UpdateUser(
@@ -105,7 +109,8 @@ func (h *UserHandler) UpdateUser(c *echo.Context) error {
 	)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		status, resp := httperrors.Map(err)
+		return c.JSON(status, resp)
 	}
 
 	return c.JSON(http.StatusOK, mapUserToResponse(user))
@@ -114,7 +119,8 @@ func (h *UserHandler) UpdateUser(c *echo.Context) error {
 func (h *UserHandler) DeleteUser(c *echo.Context) error {
 	id := c.Param("id")
 	if err := h.usecase.DeleteUser(c.Request().Context(), id); err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+		status, resp := httperrors.Map(err)
+		return c.JSON(status, resp)
 	}
 
 	return c.NoContent(http.StatusNoContent)
