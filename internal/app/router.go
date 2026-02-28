@@ -17,9 +17,9 @@ func (a *App) registerRoutes() {
 	auth.POST("/register", a.userHandler.Register)
 	auth.POST("/login", a.userHandler.Login)
 	auth.POST("/refresh", a.userHandler.Refresh)
-	auth.POST("/logout", a.userHandler.Logout)
+	auth.POST("/logout", a.userHandler.Logout, authHttp.AuthMiddleware(a.tokenUsecase, a.accessTokenBlacklist))
 
-	users := a.echo.Group("/api/v1/users", authHttp.AuthMiddleware(a.tokenUsecase))
+	users := a.echo.Group("/api/v1/users", authHttp.AuthMiddleware(a.tokenUsecase, a.accessTokenBlacklist))
 	users.GET("/:id", a.userHandler.GetByID, authHttp.RequireSelfOrRoles(domain.RoleAdmin, domain.RoleSupport))
 	users.PUT("/:id", a.userHandler.UpdateUser, authHttp.RequireSelfOrRoles(domain.RoleAdmin, domain.RoleSupport))
 	users.DELETE("/:id", a.userHandler.DeleteUser, authHttp.RequireSelfOrRoles(domain.RoleAdmin))
