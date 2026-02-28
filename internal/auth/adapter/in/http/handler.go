@@ -10,9 +10,10 @@ import (
 )
 
 type UserHandler struct {
-	usecase      interfaces.UserUsecase
-	tokenUsecase interfaces.TokenUsecase
-	cfg          *config.Config
+	usecase        interfaces.UserUsecase
+	tokenUsecase   interfaces.TokenUsecase
+	refreshUsecase interfaces.RefreshTokenUsecase
+	cfg            *config.Config
 }
 
 func NewUserHandler(usecase interfaces.UserUsecase, tokenUsecase interfaces.TokenUsecase, cfg *config.Config) *UserHandler {
@@ -20,6 +21,20 @@ func NewUserHandler(usecase interfaces.UserUsecase, tokenUsecase interfaces.Toke
 		usecase:      usecase,
 		tokenUsecase: tokenUsecase,
 		cfg:          cfg,
+	}
+}
+
+func NewUserHandlerWithRefresh(
+	usecase interfaces.UserUsecase,
+	tokenUsecase interfaces.TokenUsecase,
+	refreshUsecase interfaces.RefreshTokenUsecase,
+	cfg *config.Config,
+) *UserHandler {
+	return &UserHandler{
+		usecase:        usecase,
+		tokenUsecase:   tokenUsecase,
+		refreshUsecase: refreshUsecase,
+		cfg:            cfg,
 	}
 }
 
@@ -72,6 +87,18 @@ func (h *UserHandler) Login(c *echo.Context) error {
 		return c.JSON(status, resp)
 	}
 
+	if h.refreshUsecase != nil {
+		pair, err := h.refreshUsecase.IssueTokenPair(c.Request().Context(), user)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to issue token pair"})
+		}
+		return c.JSON(http.StatusOK, LoginResponse{
+			User:         mapUserToResponse(user),
+			Token:        pair.AccessToken,
+			RefreshToken: pair.RefreshToken,
+		})
+	}
+
 	token, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to generate token"})
@@ -81,6 +108,52 @@ func (h *UserHandler) Login(c *echo.Context) error {
 		User:  mapUserToResponse(user),
 		Token: token,
 	})
+}
+
+func (h *UserHandler) Refresh(c *echo.Context) error {
+	if h.refreshUsecase == nil {
+		return c.JSON(http.StatusNotImplemented, httperrors.Response{Error: "Refresh token flow not configured"})
+	}
+
+	var req RefreshTokenRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid request body"})
+	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Validation failed"})
+	}
+
+	pair, err := h.refreshUsecase.Refresh(c.Request().Context(), req.RefreshToken)
+	if err != nil {
+		status, resp := httperrors.Map(err)
+		return c.JSON(status, resp)
+	}
+
+	return c.JSON(http.StatusOK, RefreshResponse{
+		Token:        pair.AccessToken,
+		RefreshToken: pair.RefreshToken,
+	})
+}
+
+func (h *UserHandler) Logout(c *echo.Context) error {
+	if h.refreshUsecase == nil {
+		return c.JSON(http.StatusNotImplemented, httperrors.Response{Error: "Refresh token flow not configured"})
+	}
+
+	var req RefreshTokenRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid request body"})
+	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Validation failed"})
+	}
+
+	if err := h.refreshUsecase.Revoke(c.Request().Context(), req.RefreshToken); err != nil {
+		status, resp := httperrors.Map(err)
+		return c.JSON(status, resp)
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (h *UserHandler) GetByID(c *echo.Context) error {
