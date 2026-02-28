@@ -332,6 +332,24 @@ type refreshUsecaseStub struct {
 	deleteExpiredFn  func(ctx context.Context) error
 }
 
+type accessBlacklistStub struct {
+	addCalled bool
+	addToken  string
+	addTTL    time.Duration
+	addErr    error
+}
+
+func (s *accessBlacklistStub) Add(_ context.Context, token string, ttl time.Duration) error {
+	s.addCalled = true
+	s.addToken = token
+	s.addTTL = ttl
+	return s.addErr
+}
+
+func (s *accessBlacklistStub) Contains(_ context.Context, _ string) (bool, error) {
+	return false, nil
+}
+
 func (s *refreshUsecaseStub) IssueTokenPair(ctx context.Context, user *domain.User) (*domain.TokenPair, error) {
 	if s.issueTokenPairFn != nil {
 		return s.issueTokenPairFn(ctx, user)
@@ -553,5 +571,49 @@ func TestLogout_Success_Returns204(t *testing.T) {
 	}
 	if !called {
 		t.Fatal("expected revoke to be called")
+	}
+}
+
+func TestLogout_Success_BlacklistsAccessToken(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	refreshUC := &refreshUsecaseStub{
+		revokeFn: func(ctx context.Context, raw string) error {
+			if raw != "rt-old" {
+				t.Fatalf("expected refresh token rt-old, got %q", raw)
+			}
+			return nil
+		},
+	}
+
+	cfg := testConfig()
+	blacklist := &accessBlacklistStub{}
+	h := authhttp.NewUserHandlerWithRefresh(userUC, tokenUC, refreshUC, cfg, blacklist)
+	e := newEchoWithValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/logout", bytes.NewBufferString(`{"refresh_token":"rt-old"}`))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	req.Header.Set("Authorization", "Bearer access-token-123")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if err := h.Logout(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("expected status 204, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	if !blacklist.addCalled {
+		t.Fatalf("expected access token to be blacklisted")
+	}
+	if blacklist.addToken != "access-token-123" {
+		t.Fatalf("expected blacklisted token access-token-123, got %s", blacklist.addToken)
+	}
+	if blacklist.addTTL != cfg.Auth.AccessTokenTTL {
+		t.Fatalf("expected ttl %v, got %v", cfg.Auth.AccessTokenTTL, blacklist.addTTL)
 	}
 }
