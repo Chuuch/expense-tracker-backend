@@ -33,3 +33,20 @@ migrate-version:
 
 migrate-create:
 	@read -p "name: " name; migrate create -ext sql -dir migrations -seq $$name
+
+MOCKGEN := mockgen
+
+mocks:
+	@set -e; \
+	for src in $$(find internal -type f -path "*/interfaces/*.go"); do \
+		dir=$$(dirname "$$src"); \
+		base=$$(basename "$$src" .go); \
+		out_dir="$$dir/mocks"; \
+		out_file="$$out_dir/$${base}_mock.go"; \
+		mkdir -p "$$out_dir"; \
+		echo "Generating $$out_file from $$src"; \
+		$(MOCKGEN) -source="$$src" -destination="$$out_file" -package="mocks"; \
+	done
+
+mocks-clean:
+	@find internal -type f -path "*/interfaces/mocks/*_mock.go" -delete
