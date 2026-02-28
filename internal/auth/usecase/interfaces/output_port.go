@@ -15,6 +15,13 @@ type UserRepository interface {
 	DeleteUser(ctx context.Context, id string) error
 }
 
+type RefreshTokenRepository interface {
+	Create(ctx context.Context, token *domain.RefreshToken) error
+	GetByHash(ctx context.Context, tokenHash string) (*domain.RefreshToken, error)
+	Revoke(ctx context.Context, id string, replacedBy *string) error
+	DeleteExpired(ctx context.Context) error
+}
+
 type TokenUsecase interface {
 	GenerateToken(user *domain.User, duration time.Duration) (string, error)
 	VerifyToken(token string) (*domain.TokenClaims, error)

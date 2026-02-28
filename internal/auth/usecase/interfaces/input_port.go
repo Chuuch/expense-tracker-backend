@@ -13,3 +13,10 @@ type UserUsecase interface {
 	UpdateUser(ctx context.Context, id, firstName, lastName, phone, address, city, state, zip, country string) (*domain.User, error)
 	DeleteUser(ctx context.Context, id string) error
 }
+
+type RefreshTokenUsecase interface {
+	IssueTokenPair(ctx context.Context, user *domain.User) (*domain.TokenPair, error)
+	Refresh(ctx context.Context, rawRefreshToken string) (*domain.TokenPair, error)
+	Revoke(ctx context.Context, rawRefreshToken string) error
+	DeleteExpired(ctx context.Context) error
+}
