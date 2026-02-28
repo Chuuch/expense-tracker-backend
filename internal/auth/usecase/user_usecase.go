@@ -13,9 +13,16 @@ import (
 )
 
 var (
-	ErrUserNotFound       = errors.New("user not found")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrUserAlreadyExists  = errors.New("user already exists")
+	ErrUserNotFound       = domain.ErrUserNotFound
+	ErrInvalidCredentials   = domain.ErrInvalidCredentials
+	ErrUserAlreadyExists    = domain.ErrUserAlreadyExists
+	ErrUserAlreadyDeleted   = domain.ErrUserAlreadyDeleted
+	ErrUserNotDeleted       = domain.ErrUserNotDeleted
+	ErrUserNotActive        = domain.ErrUserNotActive
+	ErrUserNotLocked        = domain.ErrUserNotLocked
+	ErrUserNotPending       = domain.ErrUserNotPending
+	ErrUserNotAdmin         = domain.ErrUserNotAdmin
+	ErrUserNotSupport       = domain.ErrUserNotSupport
 )
 
 type UserUsecase struct {
@@ -69,6 +76,9 @@ func (u *UserUsecase) Register(
 
 	createdUser, err := u.userRepo.CreateUser(ctx, user)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserAlreadyExists) {
+			return nil, ErrUserAlreadyExists
+		}
 		return nil, fmt.Errorf("usecase.CreateUser: %w", err)
 	}
 
