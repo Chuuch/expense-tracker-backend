@@ -19,8 +19,14 @@ type UserResponse struct {
 }
 
 type LoginResponse struct {
-	User  UserResponse `json:"user"`
-	Token string       `json:"token"`
+	User         UserResponse `json:"user"`
+	Token        string       `json:"token"`
+	RefreshToken string       `json:"refresh_token,omitempty"`
+}
+
+type RefreshResponse struct {
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 type ErrorResponse struct {
