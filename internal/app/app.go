@@ -9,6 +9,7 @@ import (
 	authHttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
+	"github.com/chuuch/expense-tracker-backend/utils"
 	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
 )
@@ -22,8 +23,11 @@ type App struct {
 }
 
 func NewApp(cfg *config.Config, log *zap.Logger, userHandler *authHttp.UserHandler, tokenUsecase interfaces.TokenUsecase) *App {
+	e := echo.New()
+	e.Validator = utils.NewEchoValidator()
+
 	return &App{
-		echo:         echo.New(),
+		echo:         e,
 		cfg:          cfg,
 		log:          log,
 		userHandler:  userHandler,
