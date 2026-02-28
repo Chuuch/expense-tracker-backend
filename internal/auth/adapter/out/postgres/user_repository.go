@@ -8,6 +8,7 @@ import (
 
 	postgresdb "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/postgres/sqlc"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type UserRepository struct {
@@ -41,6 +42,10 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *domain.User) (*do
 	})
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, domain.ErrUserAlreadyExists
+		}
 		return nil, fmt.Errorf("create user: %w", err)
 	}
 	return toDomainUser(row), nil
