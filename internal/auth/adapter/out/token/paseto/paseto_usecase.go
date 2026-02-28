@@ -1,7 +1,6 @@
 package paseto
 
 import (
-	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -13,13 +12,12 @@ type PasetoUsecase struct {
 	key paseto.V4SymmetricKey
 }
 
-func NewPasetoUsecase(hexKey string) (*PasetoUsecase, error) {
-	keyBytes, err := hex.DecodeString(hexKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode hex key: %w", err)
+func NewPasetoUsecase(symmetricKey string) (*PasetoUsecase, error) {
+	if len(symmetricKey) != 32 {
+		return nil, fmt.Errorf("invalid paseto key length")
 	}
 
-	key, err := paseto.V4SymmetricKeyFromBytes(keyBytes)
+	key, err := paseto.V4SymmetricKeyFromBytes([]byte(symmetricKey))
 	if err != nil {
 		return nil, fmt.Errorf("invalid paseto key: %w", err)
 	}
