@@ -10,10 +10,11 @@ import (
 )
 
 type UserHandler struct {
-	usecase        interfaces.UserUsecase
-	tokenUsecase   interfaces.TokenUsecase
-	refreshUsecase interfaces.RefreshTokenUsecase
-	cfg            *config.Config
+	usecase              interfaces.UserUsecase
+	tokenUsecase         interfaces.TokenUsecase
+	refreshUsecase       interfaces.RefreshTokenUsecase
+	accessTokenBlacklist interfaces.AccessTokenBlacklist
+	cfg                  *config.Config
 }
 
 func NewUserHandler(usecase interfaces.UserUsecase, tokenUsecase interfaces.TokenUsecase, cfg *config.Config) *UserHandler {
@@ -29,12 +30,19 @@ func NewUserHandlerWithRefresh(
 	tokenUsecase interfaces.TokenUsecase,
 	refreshUsecase interfaces.RefreshTokenUsecase,
 	cfg *config.Config,
+	accessTokenBlacklist ...interfaces.AccessTokenBlacklist,
 ) *UserHandler {
+	var blacklist interfaces.AccessTokenBlacklist
+	if len(accessTokenBlacklist) > 0 {
+		blacklist = accessTokenBlacklist[0]
+	}
+
 	return &UserHandler{
-		usecase:        usecase,
-		tokenUsecase:   tokenUsecase,
-		refreshUsecase: refreshUsecase,
-		cfg:            cfg,
+		usecase:              usecase,
+		tokenUsecase:         tokenUsecase,
+		refreshUsecase:       refreshUsecase,
+		accessTokenBlacklist: blacklist,
+		cfg:                  cfg,
 	}
 }
 
@@ -151,6 +159,14 @@ func (h *UserHandler) Logout(c *echo.Context) error {
 	if err := h.refreshUsecase.Revoke(c.Request().Context(), req.RefreshToken); err != nil {
 		status, resp := httperrors.Map(err)
 		return c.JSON(status, resp)
+	}
+
+	if h.accessTokenBlacklist != nil {
+		if accessToken, ok := extractBearerToken(c.Request().Header.Get(AuthHeader)); ok {
+			if err := h.accessTokenBlacklist.Add(c.Request().Context(), accessToken, h.cfg.Auth.AccessTokenTTL); err != nil {
+				return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to invalidate access token"})
+			}
+		}
 	}
 
 	return c.NoContent(http.StatusNoContent)
