@@ -17,6 +17,7 @@ import (
 	expenseinterfaces "github.com/chuuch/expense-tracker-backend/internal/expenses/usecase/interfaces"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
 	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 	"go.uber.org/zap"
 )
 
@@ -273,5 +274,25 @@ func TestRouterSmoke_AuthRateLimiter_SecondRequestReturns429(t *testing.T) {
 
 	if rec2.Code != http.StatusTooManyRequests {
 		t.Fatalf("expected second request status 429, got %d body=%s", rec2.Code, rec2.Body.String())
+	}
+}
+
+func TestRouterSmoke_PanicRecovered_ReturnsNormalized500(t *testing.T) {
+	a := newRouterSmokeApp()
+	a.echo.Use(middleware.Recover())
+	a.echo.Use(authhttp.RequestIDMiddleware())
+	a.echo.GET("/panic", func(c *echo.Context) error {
+		panic("boom")
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/panic", nil)
+	rec := httptest.NewRecorder()
+	a.echo.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "Internal server error") {
+		t.Fatalf("expected normalized internal error payload, got body=%s", rec.Body.String())
 	}
 }
