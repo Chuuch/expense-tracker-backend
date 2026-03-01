@@ -22,7 +22,7 @@ func mapExpenseToResponse(e *domain.Expense) ExpenseResponse {
 	}
 }
 
-func mapExpnsesToResponse(expenses []*domain.Expense, limit, offset int) ListExpensesResponse {
+func mapExpensesToResponse(expenses []*domain.Expense, limit, offset int) ListExpensesResponse {
 	responses := make([]ExpenseResponse, 0, len(expenses))
 	for _, e := range expenses {
 		responses = append(responses, mapExpenseToResponse(e))
