@@ -115,6 +115,140 @@ func (mr *MockUserRepositoryMockRecorder) UpdateUser(ctx, user any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserRepository)(nil).UpdateUser), ctx, user)
 }
 
+// MockRefreshTokenRepository is a mock of RefreshTokenRepository interface.
+type MockRefreshTokenRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockRefreshTokenRepositoryMockRecorder
+	isgomock struct{}
+}
+
+// MockRefreshTokenRepositoryMockRecorder is the mock recorder for MockRefreshTokenRepository.
+type MockRefreshTokenRepositoryMockRecorder struct {
+	mock *MockRefreshTokenRepository
+}
+
+// NewMockRefreshTokenRepository creates a new mock instance.
+func NewMockRefreshTokenRepository(ctrl *gomock.Controller) *MockRefreshTokenRepository {
+	mock := &MockRefreshTokenRepository{ctrl: ctrl}
+	mock.recorder = &MockRefreshTokenRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRefreshTokenRepository) EXPECT() *MockRefreshTokenRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockRefreshTokenRepository) Create(ctx context.Context, token *domain.RefreshToken) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, token)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockRefreshTokenRepositoryMockRecorder) Create(ctx, token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRefreshTokenRepository)(nil).Create), ctx, token)
+}
+
+// DeleteExpired mocks base method.
+func (m *MockRefreshTokenRepository) DeleteExpired(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExpired", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExpired indicates an expected call of DeleteExpired.
+func (mr *MockRefreshTokenRepositoryMockRecorder) DeleteExpired(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpired", reflect.TypeOf((*MockRefreshTokenRepository)(nil).DeleteExpired), ctx)
+}
+
+// GetByHash mocks base method.
+func (m *MockRefreshTokenRepository) GetByHash(ctx context.Context, tokenHash string) (*domain.RefreshToken, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByHash", ctx, tokenHash)
+	ret0, _ := ret[0].(*domain.RefreshToken)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByHash indicates an expected call of GetByHash.
+func (mr *MockRefreshTokenRepositoryMockRecorder) GetByHash(ctx, tokenHash any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByHash", reflect.TypeOf((*MockRefreshTokenRepository)(nil).GetByHash), ctx, tokenHash)
+}
+
+// Revoke mocks base method.
+func (m *MockRefreshTokenRepository) Revoke(ctx context.Context, id string, replacedBy *string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Revoke", ctx, id, replacedBy)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Revoke indicates an expected call of Revoke.
+func (mr *MockRefreshTokenRepositoryMockRecorder) Revoke(ctx, id, replacedBy any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockRefreshTokenRepository)(nil).Revoke), ctx, id, replacedBy)
+}
+
+// MockAccessTokenBlacklist is a mock of AccessTokenBlacklist interface.
+type MockAccessTokenBlacklist struct {
+	ctrl     *gomock.Controller
+	recorder *MockAccessTokenBlacklistMockRecorder
+	isgomock struct{}
+}
+
+// MockAccessTokenBlacklistMockRecorder is the mock recorder for MockAccessTokenBlacklist.
+type MockAccessTokenBlacklistMockRecorder struct {
+	mock *MockAccessTokenBlacklist
+}
+
+// NewMockAccessTokenBlacklist creates a new mock instance.
+func NewMockAccessTokenBlacklist(ctrl *gomock.Controller) *MockAccessTokenBlacklist {
+	mock := &MockAccessTokenBlacklist{ctrl: ctrl}
+	mock.recorder = &MockAccessTokenBlacklistMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAccessTokenBlacklist) EXPECT() *MockAccessTokenBlacklistMockRecorder {
+	return m.recorder
+}
+
+// Add mocks base method.
+func (m *MockAccessTokenBlacklist) Add(ctx context.Context, token string, ttl time.Duration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Add", ctx, token, ttl)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Add indicates an expected call of Add.
+func (mr *MockAccessTokenBlacklistMockRecorder) Add(ctx, token, ttl any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockAccessTokenBlacklist)(nil).Add), ctx, token, ttl)
+}
+
+// Contains mocks base method.
+func (m *MockAccessTokenBlacklist) Contains(ctx context.Context, token string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Contains", ctx, token)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Contains indicates an expected call of Contains.
+func (mr *MockAccessTokenBlacklistMockRecorder) Contains(ctx, token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Contains", reflect.TypeOf((*MockAccessTokenBlacklist)(nil).Contains), ctx, token)
+}
+
 // MockTokenUsecase is a mock of TokenUsecase interface.
 type MockTokenUsecase struct {
 	ctrl     *gomock.Controller
