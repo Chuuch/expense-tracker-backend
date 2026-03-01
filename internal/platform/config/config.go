@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -69,5 +70,36 @@ func Load() (*Config, error) {
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("unmarshal config error: %w", err)
 	}
+	if err := cfg.validate(); err != nil {
+		return nil, err
+	}
 	return &cfg, nil
+}
+
+func (c *Config) validate() error {
+	if strings.TrimSpace(c.Server.Port) == "" {
+		return fmt.Errorf("invalid config: SERVER_PORT is required")
+	}
+	if strings.TrimSpace(c.DB.URL) == "" {
+		return fmt.Errorf("invalid config: DB_URL is required")
+	}
+	if strings.TrimSpace(c.Auth.PasetoSymmetricKey) == "" {
+		return fmt.Errorf("invalid config: AUTH_PASETO_KEY is required")
+	}
+	if len(c.Auth.PasetoSymmetricKey) != 32 {
+		return fmt.Errorf("invalid config: AUTH_PASETO_KEY must be exactly 32 characters")
+	}
+	if c.Auth.AccessTokenTTL <= 0 {
+		return fmt.Errorf("invalid config: AUTH_ACCESS_TOKEN_TTL must be greater than 0")
+	}
+	if c.Auth.RefreshTokenTTL <= 0 {
+		return fmt.Errorf("invalid config: AUTH_REFRESH_TOKEN_TTL must be greater than 0")
+	}
+	if strings.TrimSpace(c.Redis.Host) == "" {
+		return fmt.Errorf("invalid config: REDIS_HOST is required")
+	}
+	if strings.TrimSpace(c.Redis.Port) == "" {
+		return fmt.Errorf("invalid config: REDIS_PORT is required")
+	}
+	return nil
 }
