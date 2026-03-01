@@ -29,6 +29,13 @@ func LoggerMiddleware() echo.MiddlewareFunc {
 			if userID == "" {
 				userID = "unknown"
 			}
+			requestID, _ := c.Get(string(RequestIDKey)).(string)
+			if requestID == "" {
+				requestID = req.Header.Get(requestIDHeader)
+			}
+			if requestID == "" {
+				requestID = "unknown"
+			}
 
 			logger.Log.Info("HTTP Request",
 				zap.String("method", req.Method),
@@ -37,6 +44,7 @@ func LoggerMiddleware() echo.MiddlewareFunc {
 				zap.Duration("latency", stop.Sub(start)),
 				zap.String("ip", c.RealIP()),
 				zap.String("user_id", userID),
+				zap.String("request_id", requestID),
 			)
 			return err
 		}
