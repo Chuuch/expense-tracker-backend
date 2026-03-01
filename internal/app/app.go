@@ -43,7 +43,7 @@ func NewApp(
 	e := echo.New()
 	e.Validator = utils.NewEchoValidator()
 
-	return &App{
+	application := &App{
 		echo:                 e,
 		cfg:                  cfg,
 		log:                  log,
@@ -54,6 +54,10 @@ func NewApp(
 		db:                   db,
 		redis:                redisClient,
 	}
+
+	e.HTTPErrorHandler = application.httpErrorHandler
+
+	return application
 }
 
 func (a *App) Run(ctx context.Context) error {
