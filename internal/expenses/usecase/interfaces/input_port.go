@@ -35,7 +35,8 @@ type ExpenseUsecase interface {
 		userID string,
 		expenseID string,
 		amount int64,
-		currency domain.ExpenseCategory,
+		currency string,
+		category domain.ExpenseCategory,
 		description string,
 		date time.Time,
 	) (*domain.Expense, error)
