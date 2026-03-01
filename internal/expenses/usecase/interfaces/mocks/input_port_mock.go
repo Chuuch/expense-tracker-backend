@@ -103,16 +103,16 @@ func (mr *MockExpenseUsecaseMockRecorder) ListExpenses(ctx, filter any) *gomock.
 }
 
 // UpdateExpense mocks base method.
-func (m *MockExpenseUsecase) UpdateExpense(ctx context.Context, userID, expenseID string, amount int64, currency domain.ExpenseCategory, description string, date time.Time) (*domain.Expense, error) {
+func (m *MockExpenseUsecase) UpdateExpense(ctx context.Context, userID, expenseID string, amount int64, currency string, category domain.ExpenseCategory, description string, date time.Time) (*domain.Expense, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateExpense", ctx, userID, expenseID, amount, currency, description, date)
+	ret := m.ctrl.Call(m, "UpdateExpense", ctx, userID, expenseID, amount, currency, category, description, date)
 	ret0, _ := ret[0].(*domain.Expense)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateExpense indicates an expected call of UpdateExpense.
-func (mr *MockExpenseUsecaseMockRecorder) UpdateExpense(ctx, userID, expenseID, amount, currency, description, date any) *gomock.Call {
+func (mr *MockExpenseUsecaseMockRecorder) UpdateExpense(ctx, userID, expenseID, amount, currency, category, description, date any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExpense", reflect.TypeOf((*MockExpenseUsecase)(nil).UpdateExpense), ctx, userID, expenseID, amount, currency, description, date)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateExpense", reflect.TypeOf((*MockExpenseUsecase)(nil).UpdateExpense), ctx, userID, expenseID, amount, currency, category, description, date)
 }
