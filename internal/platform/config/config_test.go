@@ -13,6 +13,8 @@ func TestValidate_SucceedsForValidConfig(t *testing.T) {
 			PasetoSymmetricKey: "12345678901234567890123456789012",
 			AccessTokenTTL:     15 * time.Minute,
 			RefreshTokenTTL:    24 * time.Hour,
+			RateLimitRequests:  10,
+			RateLimitWindow:    time.Minute,
 		},
 		Redis: RedisConfig{
 			Host: "localhost",
@@ -33,6 +35,8 @@ func TestValidate_FailsForInvalidPasetoKeyLength(t *testing.T) {
 			PasetoSymmetricKey: "short-key",
 			AccessTokenTTL:     15 * time.Minute,
 			RefreshTokenTTL:    24 * time.Hour,
+			RateLimitRequests:  10,
+			RateLimitWindow:    time.Minute,
 		},
 		Redis: RedisConfig{
 			Host: "localhost",
