@@ -21,14 +21,15 @@ AND user_id = $2
 LIMIT 1;
 
 -- name: ListExpenses :many
-SELECT id, user_id, amount, currency, category, description, date, created_at, updated_at 
-FROM expenses 
-WHERE user_id = $1 
-AND ($2::text IS NULL OR category = $2) 
-AND ($3::timestamptz IS NULL OR date >= $3) 
-AND ($4::timestamptz IS NULL OR date <= $4) 
-ORDER BY date DESC, created_at DESC 
-LIMIT $5 OFFSET $6;
+SELECT id, user_id, amount, currency, category, description, date, created_at, updated_at
+FROM expenses
+WHERE user_id = sqlc.arg(user_id)
+  AND (sqlc.narg(category)::text IS NULL OR category = sqlc.narg(category))
+  AND (sqlc.narg(from_date)::timestamptz IS NULL OR date >= sqlc.narg(from_date))
+  AND (sqlc.narg(to_date)::timestamptz IS NULL OR date <= sqlc.narg(to_date))
+ORDER BY date DESC, created_at DESC
+LIMIT sqlc.arg(page_limit)
+OFFSET sqlc.arg(page_offset);
 
 -- name: UpdateExpense :exec
 UPDATE expenses 
