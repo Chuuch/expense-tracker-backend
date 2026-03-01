@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	expensedomain "github.com/chuuch/expense-tracker-backend/internal/expenses/domain"
 	expenseinterfaces "github.com/chuuch/expense-tracker-backend/internal/expenses/usecase/interfaces"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
+	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
 )
 
@@ -25,6 +27,10 @@ func newRouterSmokeApp() *App {
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 5 * time.Second,
 			IdleTimeout:  5 * time.Second,
+		},
+		Auth: config.AuthConfig{
+			RateLimitRequests: 10,
+			RateLimitWindow:   time.Minute,
 		},
 	}
 
@@ -180,6 +186,10 @@ func TestRouterSmoke_ExpensesList_WithValidBearer_NotUnauthorized(t *testing.T) 
 			WriteTimeout: 5 * time.Second,
 			IdleTimeout:  5 * time.Second,
 		},
+		Auth: config.AuthConfig{
+			RateLimitRequests: 10,
+			RateLimitWindow:   time.Minute,
+		},
 	}
 
 	tokenUC := tokenUsecaseStub{
@@ -216,5 +226,52 @@ func TestRouterSmoke_ExpensesList_WithValidBearer_NotUnauthorized(t *testing.T) 
 
 	if rec.Code == http.StatusUnauthorized {
 		t.Fatalf("expected non-401 response, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestRouterSmoke_AuthRateLimiter_SecondRequestReturns429(t *testing.T) {
+	cfg := &config.Config{
+		Server: config.ServerConfig{
+			Port:         ":0",
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 5 * time.Second,
+			IdleTimeout:  5 * time.Second,
+		},
+		Auth: config.AuthConfig{
+			RateLimitRequests: 1,
+			RateLimitWindow:   time.Minute,
+		},
+	}
+
+	a := NewApp(
+		cfg,
+		zap.NewNop(),
+		&authhttp.UserHandler{},
+		&expensehttp.ExpenseHandler{},
+		nil,
+		nil,
+		nil,
+		nil,
+	)
+	a.registerRoutes()
+
+	body := "{invalid-json"
+
+	req1 := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(body))
+	req1.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec1 := httptest.NewRecorder()
+	a.echo.ServeHTTP(rec1, req1)
+
+	if rec1.Code != http.StatusBadRequest {
+		t.Fatalf("expected first request status 400, got %d body=%s", rec1.Code, rec1.Body.String())
+	}
+
+	req2 := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", strings.NewReader(body))
+	req2.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec2 := httptest.NewRecorder()
+	a.echo.ServeHTTP(rec2, req2)
+
+	if rec2.Code != http.StatusTooManyRequests {
+		t.Fatalf("expected second request status 429, got %d body=%s", rec2.Code, rec2.Body.String())
 	}
 }
