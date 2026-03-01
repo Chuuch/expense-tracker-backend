@@ -6,6 +6,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7);
 SELECT id, user_id, token_hash, expires_at, revoked_at, replaced_by, created_at
 FROM refresh_tokens
 WHERE token_hash = $1
+ORDER BY created_at DESC, id DESC
 LIMIT 1;
 
 -- name: RevokeRefreshToken :exec

@@ -114,3 +114,85 @@ func (mr *MockUserUsecaseMockRecorder) UpdateUser(ctx, id, firstName, lastName, 
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserUsecase)(nil).UpdateUser), ctx, id, firstName, lastName, phone, address, city, state, zip, country)
 }
+
+// MockRefreshTokenUsecase is a mock of RefreshTokenUsecase interface.
+type MockRefreshTokenUsecase struct {
+	ctrl     *gomock.Controller
+	recorder *MockRefreshTokenUsecaseMockRecorder
+	isgomock struct{}
+}
+
+// MockRefreshTokenUsecaseMockRecorder is the mock recorder for MockRefreshTokenUsecase.
+type MockRefreshTokenUsecaseMockRecorder struct {
+	mock *MockRefreshTokenUsecase
+}
+
+// NewMockRefreshTokenUsecase creates a new mock instance.
+func NewMockRefreshTokenUsecase(ctrl *gomock.Controller) *MockRefreshTokenUsecase {
+	mock := &MockRefreshTokenUsecase{ctrl: ctrl}
+	mock.recorder = &MockRefreshTokenUsecaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRefreshTokenUsecase) EXPECT() *MockRefreshTokenUsecaseMockRecorder {
+	return m.recorder
+}
+
+// DeleteExpired mocks base method.
+func (m *MockRefreshTokenUsecase) DeleteExpired(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExpired", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExpired indicates an expected call of DeleteExpired.
+func (mr *MockRefreshTokenUsecaseMockRecorder) DeleteExpired(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpired", reflect.TypeOf((*MockRefreshTokenUsecase)(nil).DeleteExpired), ctx)
+}
+
+// IssueTokenPair mocks base method.
+func (m *MockRefreshTokenUsecase) IssueTokenPair(ctx context.Context, user *domain.User) (*domain.TokenPair, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IssueTokenPair", ctx, user)
+	ret0, _ := ret[0].(*domain.TokenPair)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IssueTokenPair indicates an expected call of IssueTokenPair.
+func (mr *MockRefreshTokenUsecaseMockRecorder) IssueTokenPair(ctx, user any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueTokenPair", reflect.TypeOf((*MockRefreshTokenUsecase)(nil).IssueTokenPair), ctx, user)
+}
+
+// Refresh mocks base method.
+func (m *MockRefreshTokenUsecase) Refresh(ctx context.Context, rawRefreshToken string) (*domain.TokenPair, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Refresh", ctx, rawRefreshToken)
+	ret0, _ := ret[0].(*domain.TokenPair)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Refresh indicates an expected call of Refresh.
+func (mr *MockRefreshTokenUsecaseMockRecorder) Refresh(ctx, rawRefreshToken any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Refresh", reflect.TypeOf((*MockRefreshTokenUsecase)(nil).Refresh), ctx, rawRefreshToken)
+}
+
+// Revoke mocks base method.
+func (m *MockRefreshTokenUsecase) Revoke(ctx context.Context, rawRefreshToken string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Revoke", ctx, rawRefreshToken)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Revoke indicates an expected call of Revoke.
+func (mr *MockRefreshTokenUsecaseMockRecorder) Revoke(ctx, rawRefreshToken any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockRefreshTokenUsecase)(nil).Revoke), ctx, rawRefreshToken)
+}

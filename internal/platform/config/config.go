@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -40,6 +41,8 @@ type AuthConfig struct {
 	PasetoSymmetricKey string        `mapstructure:"AUTH_PASETO_KEY"` // 32-byte key
 	AccessTokenTTL     time.Duration `mapstructure:"AUTH_ACCESS_TOKEN_TTL"`
 	RefreshTokenTTL    time.Duration `mapstructure:"AUTH_REFRESH_TOKEN_TTL"`
+	RateLimitRequests  int           `mapstructure:"AUTH_RATE_LIMIT_REQUESTS"`
+	RateLimitWindow    time.Duration `mapstructure:"AUTH_RATE_LIMIT_WINDOW"`
 }
 
 type PlaidConfig struct{}
@@ -57,6 +60,8 @@ func Load() (*Config, error) {
 	v.SetConfigName(".env.development")
 	v.SetConfigType("env")
 	v.AddConfigPath(".")
+	v.SetDefault("AUTH_RATE_LIMIT_REQUESTS", 10)
+	v.SetDefault("AUTH_RATE_LIMIT_WINDOW", "1m")
 	v.AutomaticEnv()
 
 	if err := v.ReadInConfig(); err != nil {
@@ -69,5 +74,42 @@ func Load() (*Config, error) {
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("unmarshal config error: %w", err)
 	}
+	if err := cfg.validate(); err != nil {
+		return nil, err
+	}
 	return &cfg, nil
+}
+
+func (c *Config) validate() error {
+	if strings.TrimSpace(c.Server.Port) == "" {
+		return fmt.Errorf("invalid config: SERVER_PORT is required")
+	}
+	if strings.TrimSpace(c.DB.URL) == "" {
+		return fmt.Errorf("invalid config: DB_URL is required")
+	}
+	if strings.TrimSpace(c.Auth.PasetoSymmetricKey) == "" {
+		return fmt.Errorf("invalid config: AUTH_PASETO_KEY is required")
+	}
+	if len(c.Auth.PasetoSymmetricKey) != 32 {
+		return fmt.Errorf("invalid config: AUTH_PASETO_KEY must be exactly 32 characters")
+	}
+	if c.Auth.AccessTokenTTL <= 0 {
+		return fmt.Errorf("invalid config: AUTH_ACCESS_TOKEN_TTL must be greater than 0")
+	}
+	if c.Auth.RefreshTokenTTL <= 0 {
+		return fmt.Errorf("invalid config: AUTH_REFRESH_TOKEN_TTL must be greater than 0")
+	}
+	if c.Auth.RateLimitRequests <= 0 {
+		return fmt.Errorf("invalid config: AUTH_RATE_LIMIT_REQUESTS must be greater than 0")
+	}
+	if c.Auth.RateLimitWindow <= 0 {
+		return fmt.Errorf("invalid config: AUTH_RATE_LIMIT_WINDOW must be greater than 0")
+	}
+	if strings.TrimSpace(c.Redis.Host) == "" {
+		return fmt.Errorf("invalid config: REDIS_HOST is required")
+	}
+	if strings.TrimSpace(c.Redis.Port) == "" {
+		return fmt.Errorf("invalid config: REDIS_PORT is required")
+	}
+	return nil
 }

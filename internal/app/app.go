@@ -2,15 +2,19 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 	"time"
 
 	authHttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
+	expenseHttp "github.com/chuuch/expense-tracker-backend/internal/expenses/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
 	"github.com/chuuch/expense-tracker-backend/utils"
 	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
@@ -19,28 +23,41 @@ type App struct {
 	cfg                  *config.Config
 	log                  *zap.Logger
 	userHandler          *authHttp.UserHandler
+	expenseHandler       *expenseHttp.ExpenseHandler
 	tokenUsecase         interfaces.TokenUsecase
 	accessTokenBlacklist interfaces.AccessTokenBlacklist
+	db                   *sql.DB
+	redis                *redis.Client
 }
 
 func NewApp(
 	cfg *config.Config,
 	log *zap.Logger,
 	userHandler *authHttp.UserHandler,
+	expenseHandler *expenseHttp.ExpenseHandler,
 	tokenUsecase interfaces.TokenUsecase,
 	accessTokenBlacklist interfaces.AccessTokenBlacklist,
+	db *sql.DB,
+	redisClient *redis.Client,
 ) *App {
 	e := echo.New()
 	e.Validator = utils.NewEchoValidator()
 
-	return &App{
+	application := &App{
 		echo:                 e,
 		cfg:                  cfg,
 		log:                  log,
 		userHandler:          userHandler,
+		expenseHandler:       expenseHandler,
 		tokenUsecase:         tokenUsecase,
 		accessTokenBlacklist: accessTokenBlacklist,
+		db:                   db,
+		redis:                redisClient,
 	}
+
+	e.HTTPErrorHandler = application.httpErrorHandler
+
+	return application
 }
 
 func (a *App) Run(ctx context.Context) error {
@@ -48,7 +65,30 @@ func (a *App) Run(ctx context.Context) error {
 		ctx = context.Background()
 	}
 
+	a.echo.Use(middleware.Recover())
+	a.echo.Use(authHttp.RequestIDMiddleware())
 	a.echo.Use(authHttp.LoggerMiddleware())
+	if len(a.cfg.Server.AllowedOrigins) > 0 {
+		a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: a.cfg.Server.AllowedOrigins,
+			AllowMethods: []string{
+				http.MethodGet,
+				http.MethodPost,
+				http.MethodPut,
+				http.MethodPatch,
+				http.MethodDelete,
+				http.MethodOptions,
+			},
+			AllowHeaders: []string{
+				echo.HeaderOrigin,
+				echo.HeaderContentType,
+				echo.HeaderAccept,
+				echo.HeaderAuthorization,
+				"X-Request-ID",
+			},
+			ExposeHeaders: []string{"X-Request-ID"},
+		}))
+	}
 	a.registerRoutes()
 
 	srv := &http.Server{

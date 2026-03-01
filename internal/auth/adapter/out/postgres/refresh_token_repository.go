@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	postgresdb "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/postgres/sqlc"
+	postgresdb "github.com/chuuch/expense-tracker-backend/internal/storage/postgres/sqlc"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
 )
 

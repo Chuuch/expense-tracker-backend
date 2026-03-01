@@ -13,8 +13,9 @@ import (
 type contextKey string
 
 const (
-	UserIDKey contextKey = "user_id"
-	RoleKey   contextKey = "role"
+	UserIDKey    contextKey = "user_id"
+	RoleKey      contextKey = "role"
+	RequestIDKey contextKey = "request_id"
 )
 
 const (
@@ -87,6 +88,11 @@ func GetUserIDFromContext(ctx context.Context) (string, bool) {
 func GetRoleFromContext(ctx context.Context) (domain.UserRole, bool) {
 	role, ok := ctx.Value(RoleKey).(string)
 	return domain.UserRole(role), ok
+}
+
+func GetRequestIDFromContext(ctx context.Context) (string, bool) {
+	requestID, ok := ctx.Value(RequestIDKey).(string)
+	return requestID, ok
 }
 
 func extractBearerToken(authHeader string) (string, bool) {
