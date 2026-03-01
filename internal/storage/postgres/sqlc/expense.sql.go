@@ -7,6 +7,7 @@ package postgresdb
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
@@ -110,33 +111,34 @@ func (q *Queries) GetExpenseByID(ctx context.Context, arg GetExpenseByIDParams) 
 }
 
 const listExpenses = `-- name: ListExpenses :many
-SELECT id, user_id, amount, currency, category, description, date, created_at, updated_at 
-FROM expenses 
-WHERE user_id = $1 
-AND ($2::text IS NULL OR category = $2) 
-AND ($3::timestamptz IS NULL OR date >= $3) 
-AND ($4::timestamptz IS NULL OR date <= $4) 
-ORDER BY date DESC, created_at DESC 
-LIMIT $5 OFFSET $6
+SELECT id, user_id, amount, currency, category, description, date, created_at, updated_at
+FROM expenses
+WHERE user_id = $1
+  AND ($2::text IS NULL OR category = $2)
+  AND ($3::timestamptz IS NULL OR date >= $3)
+  AND ($4::timestamptz IS NULL OR date <= $4)
+ORDER BY date DESC, created_at DESC
+LIMIT $6
+OFFSET $5
 `
 
 type ListExpensesParams struct {
-	UserID  string    `json:"user_id"`
-	Column2 string    `json:"column_2"`
-	Column3 time.Time `json:"column_3"`
-	Column4 time.Time `json:"column_4"`
-	Limit   int32     `json:"limit"`
-	Offset  int32     `json:"offset"`
+	UserID     string         `json:"user_id"`
+	Category   sql.NullString `json:"category"`
+	FromDate   sql.NullTime   `json:"from_date"`
+	ToDate     sql.NullTime   `json:"to_date"`
+	PageOffset int32          `json:"page_offset"`
+	PageLimit  int32          `json:"page_limit"`
 }
 
 func (q *Queries) ListExpenses(ctx context.Context, arg ListExpensesParams) ([]Expense, error) {
 	rows, err := q.db.QueryContext(ctx, listExpenses,
 		arg.UserID,
-		arg.Column2,
-		arg.Column3,
-		arg.Column4,
-		arg.Limit,
-		arg.Offset,
+		arg.Category,
+		arg.FromDate,
+		arg.ToDate,
+		arg.PageOffset,
+		arg.PageLimit,
 	)
 	if err != nil {
 		return nil, err
