@@ -35,6 +35,8 @@ func newRouterSmokeApp() *App {
 		&expensehttp.ExpenseHandler{},
 		nil,
 		nil,
+		nil,
+		nil,
 	)
 	a.registerRoutes()
 	return a
@@ -115,6 +117,32 @@ func TestRouterSmoke_Health_Returns200(t *testing.T) {
 	}
 }
 
+func TestRouterSmoke_HealthLive_Returns200(t *testing.T) {
+	a := newRouterSmokeApp()
+
+	req := httptest.NewRequest(http.MethodGet, "/health/live", nil)
+	rec := httptest.NewRecorder()
+
+	a.echo.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestRouterSmoke_HealthReady_WithoutDeps_Returns503(t *testing.T) {
+	a := newRouterSmokeApp()
+
+	req := httptest.NewRequest(http.MethodGet, "/health/ready", nil)
+	rec := httptest.NewRecorder()
+
+	a.echo.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected status 503, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
 func TestRouterSmoke_ExpensesRoutes_RequireAuth(t *testing.T) {
 	a := newRouterSmokeApp()
 
@@ -174,6 +202,8 @@ func TestRouterSmoke_ExpensesList_WithValidBearer_NotUnauthorized(t *testing.T) 
 		&authhttp.UserHandler{},
 		expenseHandler,
 		tokenUC,
+		nil,
+		nil,
 		nil,
 	)
 	a.registerRoutes()
