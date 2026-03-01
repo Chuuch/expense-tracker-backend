@@ -12,7 +12,7 @@ import (
 	authhttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/postgres"
 	authredis "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/redis"
-	postgresdb "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/postgres/sqlc"
+	postgresdb "github.com/chuuch/expense-tracker-backend/internal/storage/postgres/sqlc"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/token/paseto"
 	authusecase "github.com/chuuch/expense-tracker-backend/internal/auth/usecase"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
