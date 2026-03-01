@@ -1,12 +1,14 @@
 version: "2"
 sql:
   - schema: "migrations/"
-    queries: "internal/auth/adapter/out/postgres/queries/"
+    queries:
+      - "internal/auth/adapter/out/postgres/queries/"
+      - "internal/expenses/adapter/out/postgres/queries/"
     engine: "postgresql"
     gen:
       go:
         package: "postgresdb"
-        out: "internal/auth/adapter/out/postgres/sqlc"
+        out: "internal/storage/postgres/sqlc"
         emit_json_tags: true
         emit_prepared_queries: false
         emit_interface: true # Essential for hexagonal architecture & mocking
