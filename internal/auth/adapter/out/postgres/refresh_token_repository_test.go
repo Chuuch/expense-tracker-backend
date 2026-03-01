@@ -10,8 +10,8 @@ import (
 	"time"
 
 	repo "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/postgres"
-	postgresdb "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/postgres/sqlc"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
+	postgresdb "github.com/chuuch/expense-tracker-backend/internal/storage/postgres/sqlc"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -56,7 +56,7 @@ func TestRefreshTokenRepository_Create_And_GetByHash(t *testing.T) {
 	ctx := context.Background()
 	user := createUserForRefreshTests(t, userRepo, ctx)
 
-	raw := "refresh-raw-1"
+	raw := fmt.Sprintf("refresh-raw-2-%d", time.Now().UnixNano())
 	expiresAt := time.Now().Add(24 * time.Hour)
 	token := &domain.RefreshToken{
 		ID:        refreshTokenID(),
@@ -89,7 +89,7 @@ func TestRefreshTokenRepository_Revoke_SetsRevokedAtAndReplacedBy(t *testing.T) 
 	ctx := context.Background()
 	user := createUserForRefreshTests(t, userRepo, ctx)
 
-	raw := "refresh-raw-2"
+	raw := fmt.Sprintf("refresh-raw-2-%d", time.Now().UnixNano())
 	token := &domain.RefreshToken{
 		ID:        refreshTokenID(),
 		UserID:    user.ID,
@@ -128,8 +128,8 @@ func TestRefreshTokenRepository_DeleteExpired_RemovesOnlyExpired(t *testing.T) {
 	ctx := context.Background()
 	user := createUserForRefreshTests(t, userRepo, ctx)
 
-	expiredRaw := "refresh-expired"
-	activeRaw := "refresh-active"
+	expiredRaw := fmt.Sprintf("refresh-expired-%d", time.Now().UnixNano())
+	activeRaw := fmt.Sprintf("refresh-active-%d", time.Now().UnixNano())
 
 	expired := &domain.RefreshToken{
 		ID:        refreshTokenID(),

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	postgresdb "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/out/postgres/sqlc"
+	postgresdb "github.com/chuuch/expense-tracker-backend/internal/storage/postgres/sqlc"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
 	"github.com/jackc/pgx/v5/pgconn"
 )
