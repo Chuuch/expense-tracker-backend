@@ -8,6 +8,7 @@ import (
 	authHttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
 	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 )
 
 func (a *App) registerRoutes() {
@@ -20,6 +21,7 @@ func (a *App) registerRoutes() {
 	a.echo.GET("/health/ready", a.readiness)
 
 	auth := a.echo.Group("/api/v1/auth")
+	auth.Use(a.authRateLimiter())
 	auth.POST("/register", a.userHandler.Register)
 	auth.POST("/login", a.userHandler.Login)
 	auth.POST("/refresh", a.userHandler.Refresh)
@@ -54,4 +56,28 @@ func (a *App) readiness(c *echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"status": "ready"})
+}
+
+func (a *App) authRateLimiter() echo.MiddlewareFunc {
+	ratePerSecond := float64(a.cfg.Auth.RateLimitRequests) / a.cfg.Auth.RateLimitWindow.Seconds()
+	if ratePerSecond <= 0 {
+		ratePerSecond = 1
+	}
+
+	return middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
+		Store: middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
+			Rate:      ratePerSecond,
+			Burst:     a.cfg.Auth.RateLimitRequests,
+			ExpiresIn: a.cfg.Auth.RateLimitWindow,
+		}),
+		IdentifierExtractor: func(c *echo.Context) (string, error) {
+			return c.RealIP(), nil
+		},
+		ErrorHandler: func(_ *echo.Context, err error) error {
+			return err
+		},
+		DenyHandler: func(c *echo.Context, _ string, _ error) error {
+			return c.JSON(http.StatusTooManyRequests, map[string]string{"error": "Too many requests"})
+		},
+	})
 }
