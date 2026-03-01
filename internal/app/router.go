@@ -23,4 +23,11 @@ func (a *App) registerRoutes() {
 	users.GET("/:id", a.userHandler.GetByID, authHttp.RequireSelfOrRoles(domain.RoleAdmin, domain.RoleSupport))
 	users.PUT("/:id", a.userHandler.UpdateUser, authHttp.RequireSelfOrRoles(domain.RoleAdmin, domain.RoleSupport))
 	users.DELETE("/:id", a.userHandler.DeleteUser, authHttp.RequireSelfOrRoles(domain.RoleAdmin))
+
+	expenses := a.echo.Group("/api/v1/expenses", authHttp.AuthMiddleware(a.tokenUsecase, a.accessTokenBlacklist))
+	expenses.POST("", a.expenseHandler.CreateExpense)
+	expenses.GET("", a.expenseHandler.ListExpenses)
+	expenses.GET("/:id", a.expenseHandler.GetExpenseByID)
+	expenses.PUT("/:id", a.expenseHandler.UpdateExpense)
+	expenses.DELETE("/:id", a.expenseHandler.DeleteExpense)
 }
