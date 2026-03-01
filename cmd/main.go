@@ -37,6 +37,8 @@ func main() {
 		deps.ExpenseHandler,
 		deps.TokenUsecase,
 		deps.AccessTokenBlacklist,
+		deps.DB,
+		deps.Redis,
 	)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
