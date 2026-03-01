@@ -8,6 +8,7 @@ import (
 
 	authHttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
+	expenseHttp "github.com/chuuch/expense-tracker-backend/internal/expenses/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
 	"github.com/chuuch/expense-tracker-backend/utils"
 	"github.com/labstack/echo/v5"
@@ -19,6 +20,7 @@ type App struct {
 	cfg                  *config.Config
 	log                  *zap.Logger
 	userHandler          *authHttp.UserHandler
+	expenseHandler       *expenseHttp.ExpenseHandler
 	tokenUsecase         interfaces.TokenUsecase
 	accessTokenBlacklist interfaces.AccessTokenBlacklist
 }
@@ -27,6 +29,7 @@ func NewApp(
 	cfg *config.Config,
 	log *zap.Logger,
 	userHandler *authHttp.UserHandler,
+	expenseHandler *expenseHttp.ExpenseHandler,
 	tokenUsecase interfaces.TokenUsecase,
 	accessTokenBlacklist interfaces.AccessTokenBlacklist,
 ) *App {
@@ -38,6 +41,7 @@ func NewApp(
 		cfg:                  cfg,
 		log:                  log,
 		userHandler:          userHandler,
+		expenseHandler:       expenseHandler,
 		tokenUsecase:         tokenUsecase,
 		accessTokenBlacklist: accessTokenBlacklist,
 	}
