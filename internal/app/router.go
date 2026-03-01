@@ -1,7 +1,9 @@
 package app
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	authHttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
@@ -12,6 +14,10 @@ func (a *App) registerRoutes() {
 	a.echo.GET("/health", func(c *echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
+	a.echo.GET("/health/live", func(c *echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
+	})
+	a.echo.GET("/health/ready", a.readiness)
 
 	auth := a.echo.Group("/api/v1/auth")
 	auth.POST("/register", a.userHandler.Register)
@@ -30,4 +36,22 @@ func (a *App) registerRoutes() {
 	expenses.GET("/:id", a.expenseHandler.GetExpenseByID)
 	expenses.PUT("/:id", a.expenseHandler.UpdateExpense)
 	expenses.DELETE("/:id", a.expenseHandler.DeleteExpense)
+}
+
+func (a *App) readiness(c *echo.Context) error {
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 2*time.Second)
+	defer cancel()
+
+	if a.db == nil || a.redis == nil {
+		return c.JSON(http.StatusServiceUnavailable, map[string]string{"status": "not_ready"})
+	}
+
+	if err := a.db.PingContext(ctx); err != nil {
+		return c.JSON(http.StatusServiceUnavailable, map[string]string{"status": "not_ready"})
+	}
+	if err := a.redis.Ping(ctx).Err(); err != nil {
+		return c.JSON(http.StatusServiceUnavailable, map[string]string{"status": "not_ready"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"status": "ready"})
 }
