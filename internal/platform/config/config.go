@@ -41,6 +41,8 @@ type AuthConfig struct {
 	PasetoSymmetricKey string        `mapstructure:"AUTH_PASETO_KEY"` // 32-byte key
 	AccessTokenTTL     time.Duration `mapstructure:"AUTH_ACCESS_TOKEN_TTL"`
 	RefreshTokenTTL    time.Duration `mapstructure:"AUTH_REFRESH_TOKEN_TTL"`
+	RateLimitRequests  int           `mapstructure:"AUTH_RATE_LIMIT_REQUESTS"`
+	RateLimitWindow    time.Duration `mapstructure:"AUTH_RATE_LIMIT_WINDOW"`
 }
 
 type PlaidConfig struct{}
@@ -58,6 +60,8 @@ func Load() (*Config, error) {
 	v.SetConfigName(".env.development")
 	v.SetConfigType("env")
 	v.AddConfigPath(".")
+	v.SetDefault("AUTH_RATE_LIMIT_REQUESTS", 10)
+	v.SetDefault("AUTH_RATE_LIMIT_WINDOW", "1m")
 	v.AutomaticEnv()
 
 	if err := v.ReadInConfig(); err != nil {
@@ -94,6 +98,12 @@ func (c *Config) validate() error {
 	}
 	if c.Auth.RefreshTokenTTL <= 0 {
 		return fmt.Errorf("invalid config: AUTH_REFRESH_TOKEN_TTL must be greater than 0")
+	}
+	if c.Auth.RateLimitRequests <= 0 {
+		return fmt.Errorf("invalid config: AUTH_RATE_LIMIT_REQUESTS must be greater than 0")
+	}
+	if c.Auth.RateLimitWindow <= 0 {
+		return fmt.Errorf("invalid config: AUTH_RATE_LIMIT_WINDOW must be greater than 0")
 	}
 	if strings.TrimSpace(c.Redis.Host) == "" {
 		return fmt.Errorf("invalid config: REDIS_HOST is required")
