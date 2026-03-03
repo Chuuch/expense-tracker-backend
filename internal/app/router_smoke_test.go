@@ -40,10 +40,11 @@ func newRouterSmokeApp() *App {
 		zap.NewNop(),
 		&authhttp.UserHandler{},
 		&expensehttp.ExpenseHandler{},
-		nil,
-		nil,
-		nil,
-		nil,
+		nil, // goalHandler
+		nil, // tokenUsecase
+		nil, // accessTokenBlacklist
+		nil, // db
+		nil, // redis
 	)
 	a.registerRoutes()
 	return a
@@ -212,10 +213,11 @@ func TestRouterSmoke_ExpensesList_WithValidBearer_NotUnauthorized(t *testing.T) 
 		zap.NewNop(),
 		&authhttp.UserHandler{},
 		expenseHandler,
+		nil, // goalHandler
 		tokenUC,
-		nil,
-		nil,
-		nil,
+		nil, // accessTokenBlacklist
+		nil, // db
+		nil, // redis
 	)
 	a.registerRoutes()
 
@@ -249,10 +251,11 @@ func TestRouterSmoke_AuthRateLimiter_SecondRequestReturns429(t *testing.T) {
 		zap.NewNop(),
 		&authhttp.UserHandler{},
 		&expensehttp.ExpenseHandler{},
-		nil,
-		nil,
-		nil,
-		nil,
+		nil, // goalHandler
+		nil, // tokenUsecase
+		nil, // accessTokenBlacklist
+		nil, // db
+		nil, // redis
 	)
 	a.registerRoutes()
 
@@ -294,5 +297,37 @@ func TestRouterSmoke_PanicRecovered_ReturnsNormalized500(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), "Internal server error") {
 		t.Fatalf("expected normalized internal error payload, got body=%s", rec.Body.String())
+	}
+}
+
+func TestRouterSmoke_GoalsRoutes_RequireAuth(t *testing.T) {
+	a := newRouterSmokeApp()
+
+	cases := []struct {
+		name   string
+		method string
+		path   string
+	}{
+		{name: "create", method: http.MethodPost, path: "/api/v1/goals"},
+		{name: "list", method: http.MethodGet, path: "/api/v1/goals"},
+		{name: "getByID", method: http.MethodGet, path: "/api/v1/goals/g1"},
+		{name: "update", method: http.MethodPatch, path: "/api/v1/goals/g1"},
+		{name: "delete", method: http.MethodDelete, path: "/api/v1/goals/g1"},
+		{name: "addContribution", method: http.MethodPost, path: "/api/v1/goals/g1/contributions"},
+		{name: "listContributions", method: http.MethodGet, path: "/api/v1/goals/g1/contributions"},
+		{name: "progress", method: http.MethodGet, path: "/api/v1/goals/g1/progress"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(tc.method, tc.path, nil)
+			rec := httptest.NewRecorder()
+
+			a.echo.ServeHTTP(rec, req)
+
+			if rec.Code != http.StatusUnauthorized {
+				t.Fatalf("expected status 401, got %d body=%s", rec.Code, rec.Body.String())
+			}
+		})
 	}
 }
