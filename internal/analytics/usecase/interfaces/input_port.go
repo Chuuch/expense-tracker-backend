@@ -7,29 +7,29 @@ import (
 
 type MonthlySpendingPoint struct {
 	YearMonth string `json:"year_month"`
-	Amount int64 `json:"amount"`
-	Currency string `json:"currency"`
+	Amount    int64  `json:"amount"`
+	Currency  string `json:"currency"`
 }
 
 type CategorySpendingPoint struct {
 	Category string `json:"category"`
-	Amount int64 `json:"amount"`
+	Amount   int64  `json:"amount"`
 	Currency string `json:"currency"`
 }
 
 type MonthlySpendingFilter struct {
 	UserID string
-	From time.Time
-	To time.Time
+	From   time.Time
+	To     time.Time
 }
 
 type CategorySpendingFilter struct {
-	UserID string
+	UserID   string
 	FromDate time.Time
-	ToDate time.Time
+	ToDate   time.Time
 }
 
-type AnalyticsInputPort interface {
+type AnalyticsUsecase interface {
 	GetMonthlySpending(ctx context.Context, filter MonthlySpendingFilter) ([]MonthlySpendingPoint, error)
 	GetSpendingByCategory(ctx context.Context, filter CategorySpendingFilter) ([]CategorySpendingPoint, error)
 }
