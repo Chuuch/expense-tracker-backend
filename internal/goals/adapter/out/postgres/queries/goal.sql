@@ -30,7 +30,7 @@ ORDER BY created_at DESC
 LIMIT sqlc.arg(page_limit) 
 OFFSET sqlc.arg(page_offset);
 
--- name: UpdateGoal :one
+-- name: UpdateGoal :exec
 UPDATE goals 
 SET 
     name = $3,
