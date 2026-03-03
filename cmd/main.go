@@ -35,6 +35,7 @@ func main() {
 		logger.Log,
 		deps.UserHandler,
 		deps.ExpenseHandler,
+		deps.GoalHandler,
 		deps.TokenUsecase,
 		deps.AccessTokenBlacklist,
 		deps.DB,
