@@ -26,7 +26,7 @@ func (u *AnalyticsUsecase) GetMonthlySpending(
 		return nil, fmt.Errorf("GetMonthlySpendin: user id is required")
 	}
 
-	if filter.From.IsZero() || filter.To.IsDST() {
+	if filter.From.IsZero() || filter.To.IsZero() {
 		return nil, fmt.Errorf("GetMonthlySpending: from/to are required")
 	}
 
