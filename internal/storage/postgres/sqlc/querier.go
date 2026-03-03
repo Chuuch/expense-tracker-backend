@@ -10,18 +10,26 @@ import (
 
 type Querier interface {
 	CreateExpense(ctx context.Context, arg CreateExpenseParams) (Expense, error)
+	CreateGoal(ctx context.Context, arg CreateGoalParams) (Goal, error)
+	CreateGoalContribution(ctx context.Context, arg CreateGoalContributionParams) (GoalContribution, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteExpense(ctx context.Context, arg DeleteExpenseParams) error
 	DeleteExpiredRefreshTokens(ctx context.Context) error
+	DeleteGoal(ctx context.Context, arg DeleteGoalParams) error
 	DeleteUser(ctx context.Context, id string) error
 	GetExpenseByID(ctx context.Context, arg GetExpenseByIDParams) (Expense, error)
+	GetGoalByID(ctx context.Context, arg GetGoalByIDParams) (Goal, error)
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
+	GetTotalContributedAmount(ctx context.Context, arg GetTotalContributedAmountParams) (int64, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id string) (User, error)
 	ListExpenses(ctx context.Context, arg ListExpensesParams) ([]Expense, error)
+	ListGoalContributions(ctx context.Context, arg ListGoalContributionsParams) ([]GoalContribution, error)
+	ListGoals(ctx context.Context, arg ListGoalsParams) ([]Goal, error)
 	RevokeRefreshToken(ctx context.Context, arg RevokeRefreshTokenParams) error
 	UpdateExpense(ctx context.Context, arg UpdateExpenseParams) error
+	UpdateGoal(ctx context.Context, arg UpdateGoalParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) error
 }
 

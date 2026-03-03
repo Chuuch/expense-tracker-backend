@@ -16,13 +16,13 @@ const (
 )
 
 var (
-	ErrGoalIDRequired         = errors.New("goal id is required")
-	ErrGoalUserIDRequired     = errors.New("goal user id is required")
-	ErrGoalNameRequired       = errors.New("goal name is required")
-	ErrGoalCurrencyIsRequired = errors.New("goal currency is required")
-	ErrGoalTargetInvalid      = errors.New("goal target amount must be greater than 0")
-	ErrGoalStatusInvalid      = errors.New("goal status is invalid")
-	ErrGoalStatusTransition   = errors.New("goal status transition is not allowed")
+	ErrGoalIDRequired          = errors.New("goal id is required")
+	ErrGoalUserIDRequired      = errors.New("goal user id is required")
+	ErrGoalNameRequired        = errors.New("goal name is required")
+	ErrGoalCurrencyIsRequired  = errors.New("goal currency is required")
+	ErrGoalTargetAmountInvalid = errors.New("goal target amount must be greater than 0")
+	ErrGoalStatusInvalid       = errors.New("goal status is invalid")
+	ErrGoalStatusTransition    = errors.New("goal status transition is not allowed")
 )
 
 type Goal struct {
@@ -59,7 +59,7 @@ func NewGoal(
 		return nil, ErrGoalCurrencyIsRequired
 	}
 	if targetAmount <= 0 {
-		return nil, ErrGoalTargetInvalid
+		return nil, ErrGoalTargetAmountInvalid
 	}
 
 	now := time.Now()

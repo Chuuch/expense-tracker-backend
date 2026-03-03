@@ -6,6 +6,7 @@ import (
 	authhttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
 	expensehttp "github.com/chuuch/expense-tracker-backend/internal/expenses/adapter/in/http"
+	goalhttp "github.com/chuuch/expense-tracker-backend/internal/goals/adapter/in/http"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -14,6 +15,7 @@ type Dependencies struct {
 	Redis                *redis.Client
 	UserHandler          *authhttp.UserHandler
 	ExpenseHandler       *expensehttp.ExpenseHandler
+	GoalHandler          *goalhttp.GoalHandler
 	TokenUsecase         interfaces.TokenUsecase
 	AccessTokenBlacklist interfaces.AccessTokenBlacklist
 }

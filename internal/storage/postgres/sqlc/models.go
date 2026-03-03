@@ -21,6 +21,30 @@ type Expense struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+type Goal struct {
+	ID           string       `json:"id"`
+	UserID       string       `json:"user_id"`
+	Name         string       `json:"name"`
+	Currency     string       `json:"currency"`
+	TargetAmount int64        `json:"target_amount"`
+	TargetDate   sql.NullTime `json:"target_date"`
+	Status       string       `json:"status"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
+	CompletedAt  sql.NullTime `json:"completed_at"`
+}
+
+type GoalContribution struct {
+	ID               string         `json:"id"`
+	GoalID           string         `json:"goal_id"`
+	UserID           string         `json:"user_id"`
+	Amount           int64          `json:"amount"`
+	ContributionDate time.Time      `json:"contribution_date"`
+	Note             sql.NullString `json:"note"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        time.Time      `json:"updated_at"`
+}
+
 type RefreshToken struct {
 	ID         string         `json:"id"`
 	UserID     string         `json:"user_id"`

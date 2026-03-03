@@ -55,12 +55,14 @@ func BuildDependencies(cfg *config.Config, log *zap.Logger) (*Dependencies, erro
 	}
 
 	expenseHandler := buildExpenseModule(q)
+	goalHandler := buildGoalsModule(q)
 
 	return &Dependencies{
 		DB:                   db,
 		Redis:                redisClient,
 		UserHandler:          authMod.handler,
 		ExpenseHandler:       expenseHandler,
+		GoalHandler:          goalHandler,
 		TokenUsecase:         authMod.tokenUsecase,
 		AccessTokenBlacklist: authMod.accessTokenBlacklist,
 	}, nil

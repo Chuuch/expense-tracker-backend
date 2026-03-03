@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -30,13 +31,16 @@ func newRefreshTestRepo(t *testing.T) (*repo.RefreshTokenRepository, *repo.UserR
 	return repo.NewRefreshTokenRepository(q), repo.NewUserRepository(q), db
 }
 
+var refreshTokenSeq uint64
+
 func refreshTokenHash(raw string) string {
 	sum := sha256.Sum256([]byte(raw))
 	return hex.EncodeToString(sum[:])
 }
 
 func refreshTokenID() string {
-	return fmt.Sprintf("rt_%d", time.Now().UnixNano())
+	n := atomic.AddUint64(&refreshTokenSeq, 1)
+	return fmt.Sprintf("rt_%d_%d", time.Now().UnixNano(), n)
 }
 
 func createUserForRefreshTests(t *testing.T, userRepo *repo.UserRepository, ctx context.Context) *domain.User {

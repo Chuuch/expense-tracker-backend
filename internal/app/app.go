@@ -10,6 +10,7 @@ import (
 	authHttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
 	expenseHttp "github.com/chuuch/expense-tracker-backend/internal/expenses/adapter/in/http"
+	goalhttp "github.com/chuuch/expense-tracker-backend/internal/goals/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
 	"github.com/chuuch/expense-tracker-backend/utils"
 	"github.com/labstack/echo/v5"
@@ -24,6 +25,7 @@ type App struct {
 	log                  *zap.Logger
 	userHandler          *authHttp.UserHandler
 	expenseHandler       *expenseHttp.ExpenseHandler
+	goalHandler          *goalhttp.GoalHandler
 	tokenUsecase         interfaces.TokenUsecase
 	accessTokenBlacklist interfaces.AccessTokenBlacklist
 	db                   *sql.DB
@@ -35,6 +37,7 @@ func NewApp(
 	log *zap.Logger,
 	userHandler *authHttp.UserHandler,
 	expenseHandler *expenseHttp.ExpenseHandler,
+	goalHandler *goalhttp.GoalHandler,
 	tokenUsecase interfaces.TokenUsecase,
 	accessTokenBlacklist interfaces.AccessTokenBlacklist,
 	db *sql.DB,
@@ -49,6 +52,7 @@ func NewApp(
 		log:                  log,
 		userHandler:          userHandler,
 		expenseHandler:       expenseHandler,
+		goalHandler:          goalHandler,
 		tokenUsecase:         tokenUsecase,
 		accessTokenBlacklist: accessTokenBlacklist,
 		db:                   db,
