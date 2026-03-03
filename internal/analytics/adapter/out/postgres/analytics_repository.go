@@ -22,10 +22,11 @@ func (r *AnalyticsRepository) GetMonthlySpending(
 	ctx context.Context,
 	filter interfaces.MonthlySpendingFilter,
 ) ([]interfaces.MonthlySpendingPoint, error) {
+	toExclusive := filter.To.AddDate(0, 1, 0)
 	rows, err := r.q.GetMonthlySpending(ctx, postgresdb.GetMonthlySpendingParams{
 		UserID:   filter.UserID,
 		FromDate: filter.From,
-		ToDate:   filter.To,
+		ToDate:   toExclusive,
 	})
 	if err != nil {
 		return nil, err
@@ -47,7 +48,7 @@ func (r *AnalyticsRepository) GetSpendingByCategory(
 	filter interfaces.CategorySpendingFilter,
 ) ([]interfaces.CategorySpendingPoint, error) {
 	from := filter.FromDate.Truncate(24 * time.Hour)
-	to := filter.ToDate.Truncate(24 * time.Hour)
+	to := filter.ToDate.Truncate(24 * time.Hour).Add(24 * time.Hour).Add(-time.Nanosecond)
 
 	rows, err := r.q.GetSpendingByCategory(ctx, postgresdb.GetSpendingByCategoryParams{
 		UserID:   filter.UserID,
