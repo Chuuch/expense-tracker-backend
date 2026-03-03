@@ -16,15 +16,15 @@ SUM(amount) AS amount, currency
 FROM expenses 
 WHERE user_id = $1
 AND date >= $2 
-AND date < ($3 + INTERVAL '1 month') 
+AND date < $3
 GROUP BY year_month, currency 
 ORDER BY year_month ASC
 `
 
 type GetMonthlySpendingParams struct {
-	UserID   string      `json:"user_id"`
-	FromDate time.Time   `json:"from_date"`
-	ToDate   interface{} `json:"to_date"`
+	UserID   string    `json:"user_id"`
+	FromDate time.Time `json:"from_date"`
+	ToDate   time.Time `json:"to_date"`
 }
 
 type GetMonthlySpendingRow struct {
