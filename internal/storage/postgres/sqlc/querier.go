@@ -20,7 +20,9 @@ type Querier interface {
 	DeleteUser(ctx context.Context, id string) error
 	GetExpenseByID(ctx context.Context, arg GetExpenseByIDParams) (Expense, error)
 	GetGoalByID(ctx context.Context, arg GetGoalByIDParams) (Goal, error)
+	GetMonthlySpending(ctx context.Context, arg GetMonthlySpendingParams) ([]GetMonthlySpendingRow, error)
 	GetRefreshTokenByHash(ctx context.Context, tokenHash string) (RefreshToken, error)
+	GetSpendingByCategory(ctx context.Context, arg GetSpendingByCategoryParams) ([]GetSpendingByCategoryRow, error)
 	GetTotalContributedAmount(ctx context.Context, arg GetTotalContributedAmountParams) (int64, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id string) (User, error)
