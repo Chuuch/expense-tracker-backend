@@ -19,7 +19,7 @@ SELECT id, user_id, name, currency, target_amount, target_date, status, created_
 FROM goals 
 WHERE id = $1 
 AND user_id = $2 
-AND deleted_at IS NULL LIMIT 1;
+LIMIT 1;
 
 -- name: ListGoals :many
 SELECT id, user_id, name, currency, target_amount, target_date, status, created_at, updated_at, completed_at 
