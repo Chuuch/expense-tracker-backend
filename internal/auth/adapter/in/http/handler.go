@@ -257,6 +257,73 @@ func (h *UserHandler) GoogleOAuthCallback(c *echo.Context) error {
 	})
 }
 
+func (h *UserHandler) GoogleMobileLogin(c *echo.Context) error {
+	var req GoogleOAuthRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid request body"})
+	}
+
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Validation failed"})
+	}
+
+	ctx := c.Request().Context()
+
+	info, err := verifyGoogleIDToken(ctx, req.IDToken, h.cfg.GoogleOAuth.ClientID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Invalid Google token"})
+	}
+
+	firstName := info.FirstName
+	lastName := info.LastName
+	if firstName == "" && lastName == "" && info.Name != "" {
+		firstName = info.Name
+	}
+
+	user, err := h.usecase.GetByEmail(ctx, info.Email)
+	if err != nil {
+		randomPassword := utils.GenerateULID()
+		user, err = h.usecase.Register(
+			ctx,
+			info.Email,
+			randomPassword,
+			firstName,
+			lastName,
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to register user"})
+		}
+	}
+
+	if h.refreshUsecase != nil {
+		pair, err := h.refreshUsecase.IssueTokenPair(ctx, user)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to issue token pair"})
+		}
+		return c.JSON(http.StatusOK, LoginResponse{
+			User:         mapUserToResponse(user),
+			Token:        pair.AccessToken,
+			RefreshToken: pair.RefreshToken,
+		})
+	}
+
+	token, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to generate token"})
+	}
+
+	return c.JSON(http.StatusOK, LoginResponse{
+		User:  mapUserToResponse(user),
+		Token: token,
+	})
+}
+
 func (h *UserHandler) GetByID(c *echo.Context) error {
 	id := c.Param("id")
 	user, err := h.usecase.GetByID(c.Request().Context(), id)
