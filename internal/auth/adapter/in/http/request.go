@@ -32,3 +32,7 @@ type UpdateUserRequest struct {
 	Zip       string `json:"zip"`
 	Country   string `json:"country"`
 }
+
+type GoogleOAuthRequest struct {
+	IDToken string `json:"id_token" validate:"required"`
+}
