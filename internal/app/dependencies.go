@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 
+	analyticshttp "github.com/chuuch/expense-tracker-backend/internal/analytics/adapter/in/http"
 	authhttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
 	expensehttp "github.com/chuuch/expense-tracker-backend/internal/expenses/adapter/in/http"
@@ -16,6 +17,7 @@ type Dependencies struct {
 	UserHandler          *authhttp.UserHandler
 	ExpenseHandler       *expensehttp.ExpenseHandler
 	GoalHandler          *goalhttp.GoalHandler
+	AnalyticsHandler     *analyticshttp.AnalyticsHandler
 	TokenUsecase         interfaces.TokenUsecase
 	AccessTokenBlacklist interfaces.AccessTokenBlacklist
 }
