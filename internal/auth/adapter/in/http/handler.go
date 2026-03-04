@@ -6,7 +6,9 @@ import (
 	httperrors "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http/errors"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
+	"github.com/chuuch/expense-tracker-backend/utils"
 	"github.com/labstack/echo/v5"
+	"github.com/markbates/goth/gothic"
 )
 
 type UserHandler struct {
@@ -170,6 +172,68 @@ func (h *UserHandler) Logout(c *echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *UserHandler) GoogleOAuthStart(c *echo.Context) error {
+	gothic.BeginAuthHandler(c.Response(), c.Request())
+	return nil
+}
+
+func (h *UserHandler) GoogleOAuthCallback(c *echo.Context) error {
+	gUser, err := gothic.CompleteUserAuth(c.Response(), c.Request())
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Google Authentication failed"})
+	}
+
+	ctx := c.Request().Context()
+	user, err := h.usecase.GetByEmail(ctx, gUser.Email)
+	if err != nil {
+		randomPassword := utils.GenerateULID()
+		firstName := gUser.FirstName
+		lastName := gUser.LastName
+		if firstName == "" && lastName == "" && gUser.Name != "" {
+			firstName = gUser.Name
+		}
+
+		user, err = h.usecase.Register(
+			ctx,
+			gUser.Email,
+			randomPassword,
+			firstName,
+			lastName,
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+		)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to register user"})
+		}
+	}
+
+	if h.refreshUsecase != nil {
+		pair, err := h.refreshUsecase.IssueTokenPair(ctx, user)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to issue token pair"})
+		}
+		return c.JSON(http.StatusOK, LoginResponse{
+			User:         mapUserToResponse(user),
+			Token:        pair.AccessToken,
+			RefreshToken: pair.RefreshToken,
+		})
+	}
+
+	token, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to generate token"})
+	}
+
+	return c.JSON(http.StatusOK, LoginResponse{
+		User:  mapUserToResponse(user),
+		Token: token,
+	})
 }
 
 func (h *UserHandler) GetByID(c *echo.Context) error {
