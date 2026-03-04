@@ -5,6 +5,7 @@ sql:
       - "internal/auth/adapter/out/postgres/queries/"
       - "internal/expenses/adapter/out/postgres/queries/"
       - "internal/goals/adapter/out/postgres/queries/"
+      - "internal/analytics/adapter/out/postgres/queries/"
     engine: "postgresql"
     gen:
       go:

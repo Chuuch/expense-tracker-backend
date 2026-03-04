@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	analyticshttp "github.com/chuuch/expense-tracker-backend/internal/analytics/adapter/in/http"
 	authHttp "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
 	expenseHttp "github.com/chuuch/expense-tracker-backend/internal/expenses/adapter/in/http"
@@ -26,6 +27,7 @@ type App struct {
 	userHandler          *authHttp.UserHandler
 	expenseHandler       *expenseHttp.ExpenseHandler
 	goalHandler          *goalhttp.GoalHandler
+	analyticsHandler     *analyticshttp.AnalyticsHandler
 	tokenUsecase         interfaces.TokenUsecase
 	accessTokenBlacklist interfaces.AccessTokenBlacklist
 	db                   *sql.DB
@@ -38,6 +40,7 @@ func NewApp(
 	userHandler *authHttp.UserHandler,
 	expenseHandler *expenseHttp.ExpenseHandler,
 	goalHandler *goalhttp.GoalHandler,
+	analyticsHandler *analyticshttp.AnalyticsHandler,
 	tokenUsecase interfaces.TokenUsecase,
 	accessTokenBlacklist interfaces.AccessTokenBlacklist,
 	db *sql.DB,
@@ -53,6 +56,7 @@ func NewApp(
 		userHandler:          userHandler,
 		expenseHandler:       expenseHandler,
 		goalHandler:          goalHandler,
+		analyticsHandler:     analyticsHandler,
 		tokenUsecase:         tokenUsecase,
 		accessTokenBlacklist: accessTokenBlacklist,
 		db:                   db,

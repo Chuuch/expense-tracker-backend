@@ -56,6 +56,7 @@ func BuildDependencies(cfg *config.Config, log *zap.Logger) (*Dependencies, erro
 
 	expenseHandler := buildExpenseModule(q)
 	goalHandler := buildGoalsModule(q)
+	analyticsHandler := buildAnalyticsModule(q)
 
 	return &Dependencies{
 		DB:                   db,
@@ -63,6 +64,7 @@ func BuildDependencies(cfg *config.Config, log *zap.Logger) (*Dependencies, erro
 		UserHandler:          authMod.handler,
 		ExpenseHandler:       expenseHandler,
 		GoalHandler:          goalHandler,
+		AnalyticsHandler:     analyticsHandler,
 		TokenUsecase:         authMod.tokenUsecase,
 		AccessTokenBlacklist: authMod.accessTokenBlacklist,
 	}, nil
