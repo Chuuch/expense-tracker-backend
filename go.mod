@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	aidanwoods.dev/go-paseto v1.6.0 // indirect
 	aidanwoods.dev/go-result v0.3.1 // indirect
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -19,6 +20,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/labstack/echo/v5 v5.0.4 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/markbates/goth v1.82.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/redis/go-redis/v9 v9.18.0 // indirect
@@ -36,6 +38,7 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/oauth2 v0.27.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
