@@ -41,6 +41,7 @@ func newRouterSmokeApp() *App {
 		&authhttp.UserHandler{},
 		&expensehttp.ExpenseHandler{},
 		nil, // goalHandler
+		nil, // analyticsHandler
 		nil, // tokenUsecase
 		nil, // accessTokenBlacklist
 		nil, // db
@@ -214,6 +215,7 @@ func TestRouterSmoke_ExpensesList_WithValidBearer_NotUnauthorized(t *testing.T) 
 		&authhttp.UserHandler{},
 		expenseHandler,
 		nil, // goalHandler
+		nil, // analyticsHandler
 		tokenUC,
 		nil, // accessTokenBlacklist
 		nil, // db
@@ -252,6 +254,7 @@ func TestRouterSmoke_AuthRateLimiter_SecondRequestReturns429(t *testing.T) {
 		&authhttp.UserHandler{},
 		&expensehttp.ExpenseHandler{},
 		nil, // goalHandler
+		nil, // analyticsHandler
 		nil, // tokenUsecase
 		nil, // accessTokenBlacklist
 		nil, // db
