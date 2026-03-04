@@ -36,6 +36,7 @@ func main() {
 		deps.UserHandler,
 		deps.ExpenseHandler,
 		deps.GoalHandler,
+		deps.AnalyticsHandler,
 		deps.TokenUsecase,
 		deps.AccessTokenBlacklist,
 		deps.DB,
