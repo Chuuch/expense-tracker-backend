@@ -8,6 +8,7 @@ import (
 	"github.com/chuuch/expense-tracker-backend/internal/platform/config"
 	"github.com/chuuch/expense-tracker-backend/utils"
 	"github.com/labstack/echo/v5"
+	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 )
 
@@ -175,8 +176,28 @@ func (h *UserHandler) Logout(c *echo.Context) error {
 }
 
 func (h *UserHandler) GoogleOAuthStart(c *echo.Context) error {
-	gothic.BeginAuthHandler(c.Response(), c.Request())
-	return nil
+	provider, err := goth.GetProvider("google")
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Google provider not configured"})
+	}
+
+	state := utils.GenerateULID()
+
+	sess, err := provider.BeginAuth(state)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to begin Google auth"})
+	}
+
+	url, err := sess.GetAuthURL()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to get Google auth URL"})
+	}
+
+	if err := gothic.StoreInSession(provider.Name(), sess.Marshal(), c.Request(), c.Response()); err != nil {
+		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to persist OAuth session"})
+	}
+
+	return c.Redirect(http.StatusFound, url)
 }
 
 func (h *UserHandler) GoogleOAuthCallback(c *echo.Context) error {
