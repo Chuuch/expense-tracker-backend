@@ -2,7 +2,7 @@ SHELL := /bin/sh
 
 MIGRATE_DB_URL ?= postgres://moneymate:Da789852!..@localhost:5433/expense_db?sslmode=disable
 
-.PHONY: dev-up dev-down prod-up prod-down sqlc migrate-up migrate-down migrate-version migrate-create
+.PHONY: dev-up dev-down prod-up prod-down sqlc migrate-up migrate-down migrate-version migrate-create test test-integration
 
 db-up:
 	docker compose up -d db redis
@@ -18,6 +18,9 @@ prod-up:
 
 prod-down:
 	docker compose -f docker-compose.yaml -f docker-compose.prod.yml down
+
+test:
+	MIGRATE_DB_URL="$(MIGRATE_DB_URL)" go test ./... -v -cover
 
 sqlc:
 	sqlc generate
