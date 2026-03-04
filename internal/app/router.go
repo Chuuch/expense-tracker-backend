@@ -49,4 +49,9 @@ func (a *App) registerRoutes() {
 	goals.POST("/:id/contributions", a.goalHandler.AddContribution)
 	goals.GET("/:id/contributions", a.goalHandler.ListContributions)
 	goals.GET("/:id/progress", a.goalHandler.GetGoalProgress)
+
+	// ANALYTICS ROUTES
+	analytics := a.echo.Group("/api/v1/analytics", authHttp.AuthMiddleware(a.tokenUsecase, a.accessTokenBlacklist))
+	analytics.GET("/monthly", a.analyticsHandler.GetMonthlySpending)
+	analytics.GET("/by-category", a.analyticsHandler.GetSpendingByCategory)
 }
