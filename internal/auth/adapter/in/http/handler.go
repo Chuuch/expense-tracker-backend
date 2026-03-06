@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"net/url"
 
 	httperrors "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http/errors"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
@@ -176,6 +177,7 @@ func (h *UserHandler) Logout(c *echo.Context) error {
 }
 
 func (h *UserHandler) GoogleOAuthStart(c *echo.Context) error {
+	redirectURI := c.QueryParam("redirect_uri")
 	provider, err := goth.GetProvider("google")
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Google provider not configured"})
@@ -188,7 +190,7 @@ func (h *UserHandler) GoogleOAuthStart(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to begin Google auth"})
 	}
 
-	url, err := sess.GetAuthURL()
+	authURL, err := sess.GetAuthURL()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to get Google auth URL"})
 	}
@@ -197,7 +199,11 @@ func (h *UserHandler) GoogleOAuthStart(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to persist OAuth session"})
 	}
 
-	return c.Redirect(http.StatusFound, url)
+	if redirectURI != "" {
+		c.Response().Header().Set("Set-Cookie", "oauth_redirect_uri="+url.QueryEscape(redirectURI)+"; Path=/; HttpOnly; SameSite=Lax; Max-Age=600")
+	}
+
+	return c.Redirect(http.StatusFound, authURL)
 }
 
 func (h *UserHandler) GoogleOAuthCallback(c *echo.Context) error {
