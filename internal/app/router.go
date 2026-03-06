@@ -24,6 +24,9 @@ func (a *App) registerRoutes() {
 	auth.POST("/login", a.userHandler.Login)
 	auth.POST("/refresh", a.userHandler.Refresh)
 	auth.POST("/logout", a.userHandler.Logout, authHttp.AuthMiddleware(a.tokenUsecase, a.accessTokenBlacklist))
+	auth.GET("/google", a.userHandler.GoogleOAuthStart)
+	// auth.GET("/google/mobile", a.userHandler.GoogleOAuthStartMobile)
+	auth.GET("/google/callback", a.userHandler.GoogleOAuthCallback)
 
 	// USER ROUTES
 	users := a.echo.Group("/api/v1/users", authHttp.AuthMiddleware(a.tokenUsecase, a.accessTokenBlacklist))

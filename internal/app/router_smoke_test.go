@@ -334,3 +334,21 @@ func TestRouterSmoke_GoalsRoutes_RequireAuth(t *testing.T) {
 		})
 	}
 }
+
+func TestRouterSmoke_AuthGoogleRoutes_Registered(t *testing.T) {
+	a := newRouterSmokeApp()
+
+	for _, path := range []string{
+		"/api/v1/auth/google",
+		"/api/v1/auth/google/callback",
+	} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rec := httptest.NewRecorder()
+
+		a.echo.ServeHTTP(rec, req)
+
+		if rec.Code == http.StatusNotFound {
+			t.Fatalf("expected route %s to be registered, got 404 body=%s", path, rec.Body.String())
+		}
+	}
+}
