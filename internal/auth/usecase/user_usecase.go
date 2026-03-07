@@ -14,15 +14,15 @@ import (
 
 var (
 	ErrUserNotFound       = domain.ErrUserNotFound
-	ErrInvalidCredentials   = domain.ErrInvalidCredentials
-	ErrUserAlreadyExists    = domain.ErrUserAlreadyExists
-	ErrUserAlreadyDeleted   = domain.ErrUserAlreadyDeleted
-	ErrUserNotDeleted       = domain.ErrUserNotDeleted
-	ErrUserNotActive        = domain.ErrUserNotActive
-	ErrUserNotLocked        = domain.ErrUserNotLocked
-	ErrUserNotPending       = domain.ErrUserNotPending
-	ErrUserNotAdmin         = domain.ErrUserNotAdmin
-	ErrUserNotSupport       = domain.ErrUserNotSupport
+	ErrInvalidCredentials = domain.ErrInvalidCredentials
+	ErrUserAlreadyExists  = domain.ErrUserAlreadyExists
+	ErrUserAlreadyDeleted = domain.ErrUserAlreadyDeleted
+	ErrUserNotDeleted     = domain.ErrUserNotDeleted
+	ErrUserNotActive      = domain.ErrUserNotActive
+	ErrUserNotLocked      = domain.ErrUserNotLocked
+	ErrUserNotPending     = domain.ErrUserNotPending
+	ErrUserNotAdmin       = domain.ErrUserNotAdmin
+	ErrUserNotSupport     = domain.ErrUserNotSupport
 )
 
 type UserUsecase struct {
@@ -71,6 +71,15 @@ func (u *UserUsecase) Register(
 		zip,
 		country,
 	)
+
+	code, err := utils.GenerateVerificationCode()
+	if err != nil {
+		return nil, fmt.Errorf("usecase.Register: generate verification code: %w", err)
+	}
+
+	expiresAt := time.Now().Add(15 * time.Minute)
+	user.VerificationCode = &code
+	user.VerificationCodeExpiresAt = &expiresAt
 
 	createdUser, err := u.userRepo.CreateUser(ctx, user)
 	if err != nil {
@@ -145,12 +154,12 @@ func (u *UserUsecase) UpdateUser(
 
 	user.Profile = domain.Profile{
 		Username: username,
-		Phone:     phone,
-		Address:   address,
-		City:      city,
-		State:     state,
-		Zip:       zip,
-		Country:   country,
+		Phone:    phone,
+		Address:  address,
+		City:     city,
+		State:    state,
+		Zip:      zip,
+		Country:  country,
 	}
 
 	user.UpdatedAt = time.Now()
