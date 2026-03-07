@@ -54,12 +54,6 @@ func newTestUserForAnalytics(t *testing.T, userRepo *authrepo.UserRepository, ct
 		uniqueAnalyticsEmail("analytics_repo"),
 		"hashed-password",
 		"Analytics",
-		"Tester",
-		"+15550004444",
-		"123 Main",
-		"Austin",
-		"TX",
-		"78701",
 	)
 
 	created, err := userRepo.CreateUser(ctx, u)
