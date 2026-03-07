@@ -34,3 +34,8 @@ type UpdateUserRequest struct {
 type GoogleOAuthRequest struct {
 	IDToken string `json:"id_token" validate:"required"`
 }
+
+type VerifyEmailRequest struct {
+	Email string `json:"email" validate:"required,email"`
+	Code  string `json:"code"  validate:"required,len=6"`
+}
