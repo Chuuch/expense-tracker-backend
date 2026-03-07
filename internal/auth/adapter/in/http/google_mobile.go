@@ -10,8 +10,7 @@ import (
 type googleIDTokenInfo struct {
 	Email     string
 	Name      string
-	FirstName string
-	LastName  string
+	Username  string
 }
 
 func verifyGoogleIDToken(ctx context.Context, rawToken, audience string) (*googleIDTokenInfo, error) {
@@ -22,8 +21,7 @@ func verifyGoogleIDToken(ctx context.Context, rawToken, audience string) (*googl
 
 	email, _ := payload.Claims["email"].(string)
 	name, _ := payload.Claims["name"].(string)
-	firstName, _ := payload.Claims["given_name"].(string)
-	lastName, _ := payload.Claims["family_name"].(string)
+	username, _ := payload.Claims["given_name"].(string)
 
 	if email == "" {
 		return nil, fmt.Errorf("google id token missing email")
@@ -32,7 +30,6 @@ func verifyGoogleIDToken(ctx context.Context, rawToken, audience string) (*googl
 	return &googleIDTokenInfo{
 		Email:     email,
 		Name:      name,
-		FirstName: firstName,
-		LastName:  lastName,
+		Username:  username,
 	}, nil
 }
