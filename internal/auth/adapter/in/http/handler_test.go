@@ -44,8 +44,7 @@ func TestRegister_Success_Returns201(t *testing.T) {
 	body := map[string]any{
 		"email":      "test@example.com",
 		"password":   "Password123!",
-		"first_name": "Test",
-		"last_name":  "User",
+		"username": "Test",
 		"phone":      "+15550001111",
 		"address":    "123 Main",
 		"city":       "Austin",
@@ -61,7 +60,7 @@ func TestRegister_Success_Returns201(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	userUC.EXPECT().
-		Register(gomock.Any(), "test@example.com", "Password123!", "Test", "User", "+15550001111", "123 Main", "Austin", "TX", "78701", "US").
+		Register(gomock.Any(), "test@example.com", "Password123!", "Test", "+15550001111", "123 Main", "Austin", "TX", "78701", "US").
 		Return(&domain.User{
 			ID:           "u1",
 			Email:        "test@example.com",
@@ -69,8 +68,7 @@ func TestRegister_Success_Returns201(t *testing.T) {
 			Status:       domain.StatusPending,
 			IsMFAEnabled: false,
 			Profile: domain.Profile{
-				FirstName: "Test",
-				LastName:  "User",
+				Username: "Test",
 				Phone:     "+15550001111",
 				Address:   "123 Main",
 				City:      "Austin",
@@ -101,14 +99,14 @@ func TestRegister_Duplicate_Returns409(t *testing.T) {
 	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
 	e := newEchoWithValidator()
 
-	body := `{"email":"test@example.com","password":"Password123!","first_name":"A","last_name":"B","phone":"123"}`
+	body := `{"email":"test@example.com","password":"Password123!","username":"A","phone":"123"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewBufferString(body))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
 	userUC.EXPECT().
-		Register(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Register(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil, usecase.ErrUserAlreadyExists).
 		Times(1)
 
@@ -195,8 +193,7 @@ func TestLogin_Success_Returns200AndToken(t *testing.T) {
 		Role:   domain.RoleUser,
 		Status: domain.UserStatus("pending"),
 		Profile: domain.Profile{
-			FirstName: "Test",
-			LastName:  "User",
+			Username: "Test",
 			Phone:     "+15550001111",
 		},
 		CreatedAt: time.Now(),
@@ -294,22 +291,21 @@ func TestRegister_UsesRequestContext(t *testing.T) {
 	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
 	e := newEchoWithValidator()
 
-	reqBody := `{"email":"test@example.com","password":"Password123!","first_name":"T","last_name":"U","phone":"123"}`
+	reqBody := `{"email":"test@example.com","password":"Password123!","username":"T","phone":"123"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewBufferString(reqBody))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
 	userUC.EXPECT().
-		Register(gomock.AssignableToTypeOf(context.Background()), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Register(gomock.AssignableToTypeOf(context.Background()), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(&domain.User{
 			ID:     "u1",
 			Email:  "test@example.com",
 			Role:   domain.RoleUser,
 			Status: domain.StatusPending,
 			Profile: domain.Profile{
-				FirstName: "T",
-				LastName:  "U",
+				Username: "T",
 				Phone:     "123",
 			},
 			CreatedAt: time.Now(),
