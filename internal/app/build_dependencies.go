@@ -67,5 +67,6 @@ func BuildDependencies(cfg *config.Config, log *zap.Logger) (*Dependencies, erro
 		AnalyticsHandler:     analyticsHandler,
 		TokenUsecase:         authMod.tokenUsecase,
 		AccessTokenBlacklist: authMod.accessTokenBlacklist,
+		AsynqClient:          authMod.asynqClient,
 	}, nil
 }
