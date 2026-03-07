@@ -21,16 +21,29 @@ func toDomainUser(u postgresdb.User) *domain.User {
 		deletedAt = &t
 	}
 
+	var verificationCode *string
+	if u.VerificationCode.Valid {
+		s := u.VerificationCode.String
+		verificationCode = &s
+	}
+
+	var verificationCodeExpiresAt *time.Time
+	if u.VerificationCodeExpiresAt.Valid {
+		t := u.VerificationCodeExpiresAt.Time
+		verificationCodeExpiresAt = &t
+	}
+
 	return &domain.User{
 		ID:           u.ID,
 		Email:        u.Email,
 		PasswordHash: u.PasswordHash,
 		IsMFAEnabled: u.IsMfaEnabled,
+		VerificationCode: verificationCode,
+		VerificationCodeExpiresAt: verificationCodeExpiresAt,
 		Role:         domain.UserRole(u.Role),
 		Status:       domain.UserStatus(u.Status),
 		Profile: domain.Profile{
-			FirstName: u.FirstName,
-			LastName:  u.LastName,
+			Username: u.Username,
 			Phone:     u.Phone,
 			Address:   u.Address,
 			City:      u.City,
