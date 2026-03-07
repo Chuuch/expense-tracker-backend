@@ -27,9 +27,8 @@ func (a *App) registerRoutes() {
 	auth.GET("/google", a.userHandler.GoogleOAuthStart)
 	// auth.GET("/google/mobile", a.userHandler.GoogleOAuthStartMobile)
 	auth.GET("/google/callback", a.userHandler.GoogleOAuthCallback)
-	auth.POST("/login", a.userHandler.Login)
 	auth.POST("/verify-email", a.userHandler.VerifyEmail)
-	auth.POST("/refresh", a.userHandler.Refresh)
+
 
 	// USER ROUTES
 	users := a.echo.Group("/api/v1/users", authHttp.AuthMiddleware(a.tokenUsecase, a.accessTokenBlacklist))
