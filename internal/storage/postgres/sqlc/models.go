@@ -56,22 +56,23 @@ type RefreshToken struct {
 }
 
 type User struct {
-	ID           string       `json:"id"`
-	Email        string       `json:"email"`
-	PasswordHash string       `json:"password_hash"`
-	IsMfaEnabled bool         `json:"is_mfa_enabled"`
-	Role         string       `json:"role"`
-	Status       string       `json:"status"`
-	FirstName    string       `json:"first_name"`
-	LastName     string       `json:"last_name"`
-	Phone        string       `json:"phone"`
-	Address      string       `json:"address"`
-	City         string       `json:"city"`
-	State        string       `json:"state"`
-	Zip          string       `json:"zip"`
-	Country      string       `json:"country"`
-	CreatedAt    time.Time    `json:"created_at"`
-	UpdatedAt    time.Time    `json:"updated_at"`
-	LastLoginAt  sql.NullTime `json:"last_login_at"`
-	DeletedAt    sql.NullTime `json:"deleted_at"`
+	ID                        string         `json:"id"`
+	Email                     string         `json:"email"`
+	PasswordHash              string         `json:"password_hash"`
+	IsMfaEnabled              bool           `json:"is_mfa_enabled"`
+	VerificationCode          sql.NullString `json:"verification_code"`
+	VerificationCodeExpiresAt sql.NullTime   `json:"verification_code_expires_at"`
+	Role                      string         `json:"role"`
+	Status                    string         `json:"status"`
+	Username                  string         `json:"username"`
+	Phone                     string         `json:"phone"`
+	Address                   string         `json:"address"`
+	City                      string         `json:"city"`
+	State                     string         `json:"state"`
+	Zip                       string         `json:"zip"`
+	Country                   string         `json:"country"`
+	CreatedAt                 time.Time      `json:"created_at"`
+	UpdatedAt                 time.Time      `json:"updated_at"`
+	LastLoginAt               sql.NullTime   `json:"last_login_at"`
+	DeletedAt                 sql.NullTime   `json:"deleted_at"`
 }
