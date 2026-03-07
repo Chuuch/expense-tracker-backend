@@ -25,7 +25,7 @@ func TestUserUsecase_Register_DuplicateEmail(t *testing.T) {
 		Return(&domain.User{ID: "existing-id"}, nil).
 		Times(1)
 
-	_, err := uc.Register(ctx, "test@example.com", "Password123!", "Test", "User", "+15550001111", "", "", "", "", "")
+	_, err := uc.Register(ctx, "test@example.com", "Password123!", "Test", "+15550001111", "", "", "", "", "")
 	if !errors.Is(err, usecase.ErrUserAlreadyExists) {
 		t.Fatalf("expected ErrUserAlreadyExists, got: %v", err)
 	}
@@ -60,7 +60,7 @@ func TestUserUsecase_Register_Success_HashesPassword(t *testing.T) {
 		}).
 		Times(1)
 
-	got, err := uc.Register(ctx, "test@example.com", "Password123!", "Test", "User", "+15550001111", "", "", "", "", "")
+	got, err := uc.Register(ctx, "test@example.com", "Password123!", "Test", "+15550001111", "", "", "", "", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -193,8 +193,7 @@ func TestUserUsecase_UpdateUser_Success(t *testing.T) {
 		Role:         domain.RoleUser,
 		Status:       domain.StatusPending,
 		Profile: domain.Profile{
-			FirstName: "Old",
-			LastName:  "Name",
+			Username: "Old",
 			Phone:     "123",
 			Address:   "Old Addr",
 			City:      "Old City",
@@ -212,7 +211,7 @@ func TestUserUsecase_UpdateUser_Success(t *testing.T) {
 	repo.EXPECT().
 		UpdateUser(ctx, gomock.AssignableToTypeOf(&domain.User{})).
 		DoAndReturn(func(_ context.Context, u *domain.User) error {
-			if u.Profile.FirstName != "New" || u.Profile.LastName != "User" {
+			if u.Profile.Username != "New" {
 				t.Fatalf("profile not updated correctly: %+v", u.Profile)
 			}
 			if u.UpdatedAt.IsZero() {
@@ -222,7 +221,7 @@ func TestUserUsecase_UpdateUser_Success(t *testing.T) {
 		}).
 		Times(1)
 
-	got, err := uc.UpdateUser(ctx, "u1", "New", "User", "+15550001111", "123 Main", "Austin", "TX", "78701", "US")
+	got, err := uc.UpdateUser(ctx, "u1", "New", "+15550001111", "123 Main", "Austin", "TX", "78701", "US")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -244,7 +243,7 @@ func TestUserUsecase_UpdateUser_NotFound(t *testing.T) {
 		Return(nil, nil).
 		Times(1)
 
-	_, err := uc.UpdateUser(ctx, "missing-id", "A", "B", "123", "", "", "", "", "")
+	_, err := uc.UpdateUser(ctx, "missing-id", "A", "123", "", "", "", "", "")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
