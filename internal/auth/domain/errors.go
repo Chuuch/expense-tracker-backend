@@ -17,4 +17,7 @@ var (
 	ErrRefreshTokenInvalid = errors.New("refresh token invalid")
 	ErrRefreshTokenExpired = errors.New("refresh token expired")
 	ErrRefreshTokenRevoked = errors.New("refresh token revoked")
+
+	ErrInvalidVerificationCode = errors.New("invalid verification code")
+	ErrVerificationCodeExpired = errors.New("verification code expired")
 )
