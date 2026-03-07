@@ -42,15 +42,15 @@ func TestRegister_Success_Returns201(t *testing.T) {
 	e := newEchoWithValidator()
 
 	body := map[string]any{
-		"email":      "test@example.com",
-		"password":   "Password123!",
+		"email":    "test@example.com",
+		"password": "Password123!",
 		"username": "Test",
-		"phone":      "+15550001111",
-		"address":    "123 Main",
-		"city":       "Austin",
-		"state":      "TX",
-		"zip":        "78701",
-		"country":    "US",
+		"phone":    "+15550001111",
+		"address":  "123 Main",
+		"city":     "Austin",
+		"state":    "TX",
+		"zip":      "78701",
+		"country":  "US",
 	}
 	b, _ := json.Marshal(body)
 
@@ -69,12 +69,12 @@ func TestRegister_Success_Returns201(t *testing.T) {
 			IsMFAEnabled: false,
 			Profile: domain.Profile{
 				Username: "Test",
-				Phone:     "+15550001111",
-				Address:   "123 Main",
-				City:      "Austin",
-				State:     "TX",
-				Zip:       "78701",
-				Country:   "US",
+				Phone:    "+15550001111",
+				Address:  "123 Main",
+				City:     "Austin",
+				State:    "TX",
+				Zip:      "78701",
+				Country:  "US",
 			},
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
@@ -194,7 +194,7 @@ func TestLogin_Success_Returns200AndToken(t *testing.T) {
 		Status: domain.UserStatus("pending"),
 		Profile: domain.Profile{
 			Username: "Test",
-			Phone:     "+15550001111",
+			Phone:    "+15550001111",
 		},
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -306,7 +306,7 @@ func TestRegister_UsesRequestContext(t *testing.T) {
 			Status: domain.StatusPending,
 			Profile: domain.Profile{
 				Username: "T",
-				Phone:     "123",
+				Phone:    "123",
 			},
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
@@ -611,5 +611,164 @@ func TestLogout_Success_BlacklistsAccessToken(t *testing.T) {
 	}
 	if blacklist.addTTL != cfg.Auth.AccessTokenTTL {
 		t.Fatalf("expected ttl %v, got %v", cfg.Auth.AccessTokenTTL, blacklist.addTTL)
+	}
+}
+
+func TestVerifyEmail_Success_Returns200AndUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
+	e := newEchoWithValidator()
+
+	body := `{"email":"test@example.com","code":"123456"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/verify-email", bytes.NewBufferString(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	user := &domain.User{
+		ID:     "u1",
+		Email:  "test@example.com",
+		Role:   domain.RoleUser,
+		Status: domain.StatusActive,
+		Profile: domain.Profile{
+			Username: "Test",
+			Phone:    "+15550001111",
+		},
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	userUC.EXPECT().
+		VerifyEmail(gomock.Any(), "test@example.com", "123456").
+		Return(user, nil).
+		Times(1)
+
+	if err := h.VerifyEmail(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp authhttp.UserResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("unmarshal response: %v", err)
+	}
+	if resp.ID != "u1" || resp.Email != "test@example.com" || resp.Status != "active" {
+		t.Fatalf("unexpected response: %+v", resp)
+	}
+}
+
+func TestVerifyEmail_InvalidCode_Returns400(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
+	e := newEchoWithValidator()
+
+	body := `{"email":"test@example.com","code":"999999"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/verify-email", bytes.NewBufferString(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	userUC.EXPECT().
+		VerifyEmail(gomock.Any(), "test@example.com", "999999").
+		Return(nil, usecase.ErrInvalidVerificationCode).
+		Times(1)
+
+	if err := h.VerifyEmail(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestVerifyEmail_ExpiredCode_Returns400(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
+	e := newEchoWithValidator()
+
+	body := `{"email":"test@example.com","code":"123456"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/verify-email", bytes.NewBufferString(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	userUC.EXPECT().
+		VerifyEmail(gomock.Any(), "test@example.com", "123456").
+		Return(nil, usecase.ErrVerificationCodeExpired).
+		Times(1)
+
+	if err := h.VerifyEmail(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestVerifyEmail_UserNotFound_Returns404(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
+	e := newEchoWithValidator()
+
+	body := `{"email":"missing@example.com","code":"123456"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/verify-email", bytes.NewBufferString(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	userUC.EXPECT().
+		VerifyEmail(gomock.Any(), "missing@example.com", "123456").
+		Return(nil, usecase.ErrUserNotFound).
+		Times(1)
+
+	if err := h.VerifyEmail(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected status 404, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestVerifyEmail_BindError_Returns400(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
+	e := newEchoWithValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/verify-email", bytes.NewBufferString("{invalid"))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if err := h.VerifyEmail(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d body=%s", rec.Code, rec.Body.String())
 	}
 }
