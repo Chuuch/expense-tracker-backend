@@ -35,3 +35,7 @@ type TokenUsecase interface {
 type VerificationEmailEnqueuer interface {
 	EnqueueSendVerificationEmail(ctx context.Context, userID string) error
 }
+
+type VerificationEmailSender interface {
+	SendVerificationEmail(ctx context.Context, toEmail, code string) error
+}
