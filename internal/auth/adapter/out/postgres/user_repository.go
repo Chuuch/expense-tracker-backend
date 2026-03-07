@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	postgresdb "github.com/chuuch/expense-tracker-backend/internal/storage/postgres/sqlc"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
+	postgresdb "github.com/chuuch/expense-tracker-backend/internal/storage/postgres/sqlc"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
@@ -21,24 +21,25 @@ func NewUserRepository(q postgresdb.Querier) *UserRepository {
 
 func (r *UserRepository) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
 	row, err := r.q.CreateUser(ctx, postgresdb.CreateUserParams{
-		ID:           user.ID,
-		Email:        user.Email,
-		PasswordHash: user.PasswordHash,
-		IsMfaEnabled: user.IsMFAEnabled,
-		Role:         string(user.Role),
-		Status:       string(user.Status),
-		FirstName:    user.Profile.FirstName,
-		LastName:     user.Profile.LastName,
-		Phone:        user.Profile.Phone,
-		Address:      user.Profile.Address,
-		City:         user.Profile.City,
-		State:        user.Profile.State,
-		Zip:          user.Profile.Zip,
-		Country:      user.Profile.Country,
-		CreatedAt:    user.CreatedAt,
-		UpdatedAt:    user.UpdatedAt,
-		LastLoginAt:  toNullTime(user.LastLoginAt),
-		DeletedAt:    toNullTime(user.DeletedAt),
+		ID:                        user.ID,
+		Email:                     user.Email,
+		PasswordHash:              user.PasswordHash,
+		IsMfaEnabled:              user.IsMFAEnabled,
+		VerificationCode:          toNullString(user.VerificationCode),
+		VerificationCodeExpiresAt: toNullTime(user.VerificationCodeExpiresAt),
+		Role:                      string(user.Role),
+		Status:                    string(user.Status),
+		Username:                  user.Profile.Username,
+		Phone:                     user.Profile.Phone,
+		Address:                   user.Profile.Address,
+		City:                      user.Profile.City,
+		State:                     user.Profile.State,
+		Zip:                       user.Profile.Zip,
+		Country:                   user.Profile.Country,
+		CreatedAt:                 user.CreatedAt,
+		UpdatedAt:                 user.UpdatedAt,
+		LastLoginAt:               toNullTime(user.LastLoginAt),
+		DeletedAt:                 toNullTime(user.DeletedAt),
 	})
 
 	if err != nil {
@@ -75,22 +76,23 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*domain.User, 
 
 func (r *UserRepository) UpdateUser(ctx context.Context, user *domain.User) error {
 	return r.q.UpdateUser(ctx, postgresdb.UpdateUserParams{
-		ID:           user.ID,
-		Email:        user.Email,
-		PasswordHash: user.PasswordHash,
-		IsMfaEnabled: user.IsMFAEnabled,
-		Role:         string(user.Role),
-		Status:       string(user.Status),
-		FirstName:    user.Profile.FirstName,
-		LastName:     user.Profile.LastName,
-		Phone:        user.Profile.Phone,
-		Address:      user.Profile.Address,
-		City:         user.Profile.City,
-		State:        user.Profile.State,
-		Zip:          user.Profile.Zip,
-		Country:      user.Profile.Country,
-		UpdatedAt:    user.UpdatedAt,
-		LastLoginAt:  toNullTime(user.LastLoginAt),
+		ID:                        user.ID,
+		Email:                     user.Email,
+		PasswordHash:              user.PasswordHash,
+		IsMfaEnabled:              user.IsMFAEnabled,
+		VerificationCode:          toNullString(user.VerificationCode),
+		VerificationCodeExpiresAt: toNullTime(user.VerificationCodeExpiresAt),
+		Role:                      string(user.Role),
+		Status:                    string(user.Status),
+		Username:                  user.Profile.Username,
+		Phone:                     user.Profile.Phone,
+		Address:                   user.Profile.Address,
+		City:                      user.Profile.City,
+		State:                     user.Profile.State,
+		Zip:                       user.Profile.Zip,
+		Country:                   user.Profile.Country,
+		UpdatedAt:                 user.UpdatedAt,
+		LastLoginAt:               toNullTime(user.LastLoginAt),
 	})
 }
 

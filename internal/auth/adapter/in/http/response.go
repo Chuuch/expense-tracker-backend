@@ -3,8 +3,7 @@ package http
 type UserResponse struct {
 	ID           string `json:"id"`
 	Email        string `json:"email"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
+	Username     string `json:"username"`
 	Phone        string `json:"phone"`
 	Address      string `json:"address"`
 	City         string `json:"city"`

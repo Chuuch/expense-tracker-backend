@@ -14,34 +14,36 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     id, email, password_hash, is_mfa_enabled, role, status,
-    first_name, last_name, phone, address, city, state, zip, country,
+    username, phone, address, city, state, zip, country,
+    verification_code, verification_code_expires_at,
     created_at, updated_at, last_login_at, deleted_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6,
-    $7, $8, $9, $10, $11, $12, $13, $14,
-    $15, $16, $17, $18
-) RETURNING id, email, password_hash, is_mfa_enabled, role, status, first_name, last_name, phone, address, city, state, zip, country, created_at, updated_at, last_login_at, deleted_at
+    $7, $8, $9, $10, $11, $12, $13,
+    $14, $15, $16, $17, $18, $19
+) RETURNING id, email, password_hash, is_mfa_enabled, verification_code, verification_code_expires_at, role, status, username, phone, address, city, state, zip, country, created_at, updated_at, last_login_at, deleted_at
 `
 
 type CreateUserParams struct {
-	ID           string       `json:"id"`
-	Email        string       `json:"email"`
-	PasswordHash string       `json:"password_hash"`
-	IsMfaEnabled bool         `json:"is_mfa_enabled"`
-	Role         string       `json:"role"`
-	Status       string       `json:"status"`
-	FirstName    string       `json:"first_name"`
-	LastName     string       `json:"last_name"`
-	Phone        string       `json:"phone"`
-	Address      string       `json:"address"`
-	City         string       `json:"city"`
-	State        string       `json:"state"`
-	Zip          string       `json:"zip"`
-	Country      string       `json:"country"`
-	CreatedAt    time.Time    `json:"created_at"`
-	UpdatedAt    time.Time    `json:"updated_at"`
-	LastLoginAt  sql.NullTime `json:"last_login_at"`
-	DeletedAt    sql.NullTime `json:"deleted_at"`
+	ID                        string         `json:"id"`
+	Email                     string         `json:"email"`
+	PasswordHash              string         `json:"password_hash"`
+	IsMfaEnabled              bool           `json:"is_mfa_enabled"`
+	Role                      string         `json:"role"`
+	Status                    string         `json:"status"`
+	Username                  string         `json:"username"`
+	Phone                     string         `json:"phone"`
+	Address                   string         `json:"address"`
+	City                      string         `json:"city"`
+	State                     string         `json:"state"`
+	Zip                       string         `json:"zip"`
+	Country                   string         `json:"country"`
+	VerificationCode          sql.NullString `json:"verification_code"`
+	VerificationCodeExpiresAt sql.NullTime   `json:"verification_code_expires_at"`
+	CreatedAt                 time.Time      `json:"created_at"`
+	UpdatedAt                 time.Time      `json:"updated_at"`
+	LastLoginAt               sql.NullTime   `json:"last_login_at"`
+	DeletedAt                 sql.NullTime   `json:"deleted_at"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -52,14 +54,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.IsMfaEnabled,
 		arg.Role,
 		arg.Status,
-		arg.FirstName,
-		arg.LastName,
+		arg.Username,
 		arg.Phone,
 		arg.Address,
 		arg.City,
 		arg.State,
 		arg.Zip,
 		arg.Country,
+		arg.VerificationCode,
+		arg.VerificationCodeExpiresAt,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 		arg.LastLoginAt,
@@ -71,10 +74,11 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.PasswordHash,
 		&i.IsMfaEnabled,
+		&i.VerificationCode,
+		&i.VerificationCodeExpiresAt,
 		&i.Role,
 		&i.Status,
-		&i.FirstName,
-		&i.LastName,
+		&i.Username,
 		&i.Phone,
 		&i.Address,
 		&i.City,
@@ -99,7 +103,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password_hash, is_mfa_enabled, role, status, first_name, last_name, phone, address, city, state, zip, country, created_at, updated_at, last_login_at, deleted_at FROM users WHERE email = $1 AND deleted_at IS NULL
+SELECT id, email, password_hash, is_mfa_enabled, verification_code, verification_code_expires_at, role, status, username, phone, address, city, state, zip, country, created_at, updated_at, last_login_at, deleted_at FROM users WHERE email = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -110,10 +114,11 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.PasswordHash,
 		&i.IsMfaEnabled,
+		&i.VerificationCode,
+		&i.VerificationCodeExpiresAt,
 		&i.Role,
 		&i.Status,
-		&i.FirstName,
-		&i.LastName,
+		&i.Username,
 		&i.Phone,
 		&i.Address,
 		&i.City,
@@ -129,7 +134,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password_hash, is_mfa_enabled, role, status, first_name, last_name, phone, address, city, state, zip, country, created_at, updated_at, last_login_at, deleted_at FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1
+SELECT id, email, password_hash, is_mfa_enabled, verification_code, verification_code_expires_at, role, status, username, phone, address, city, state, zip, country, created_at, updated_at, last_login_at, deleted_at FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
@@ -140,10 +145,11 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 		&i.Email,
 		&i.PasswordHash,
 		&i.IsMfaEnabled,
+		&i.VerificationCode,
+		&i.VerificationCodeExpiresAt,
 		&i.Role,
 		&i.Status,
-		&i.FirstName,
-		&i.LastName,
+		&i.Username,
 		&i.Phone,
 		&i.Address,
 		&i.City,
@@ -160,28 +166,30 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 
 const updateUser = `-- name: UpdateUser :exec
 UPDATE users SET email = $2, password_hash = $3, is_mfa_enabled = $4, role = $5, status = $6,
-    first_name = $7, last_name = $8, phone = $9, address = $10, city = $11, state = $12, zip = $13, country = $14,
-    updated_at = $15, last_login_at = $16
+    username = $7, phone = $8, address = $9, city = $10, state = $11, zip = $12, country = $13,
+    verification_code = $14, verification_code_expires_at = $15,
+    updated_at = $16, last_login_at = $17
 WHERE id = $1 AND deleted_at IS NULL
 `
 
 type UpdateUserParams struct {
-	ID           string       `json:"id"`
-	Email        string       `json:"email"`
-	PasswordHash string       `json:"password_hash"`
-	IsMfaEnabled bool         `json:"is_mfa_enabled"`
-	Role         string       `json:"role"`
-	Status       string       `json:"status"`
-	FirstName    string       `json:"first_name"`
-	LastName     string       `json:"last_name"`
-	Phone        string       `json:"phone"`
-	Address      string       `json:"address"`
-	City         string       `json:"city"`
-	State        string       `json:"state"`
-	Zip          string       `json:"zip"`
-	Country      string       `json:"country"`
-	UpdatedAt    time.Time    `json:"updated_at"`
-	LastLoginAt  sql.NullTime `json:"last_login_at"`
+	ID                        string         `json:"id"`
+	Email                     string         `json:"email"`
+	PasswordHash              string         `json:"password_hash"`
+	IsMfaEnabled              bool           `json:"is_mfa_enabled"`
+	Role                      string         `json:"role"`
+	Status                    string         `json:"status"`
+	Username                  string         `json:"username"`
+	Phone                     string         `json:"phone"`
+	Address                   string         `json:"address"`
+	City                      string         `json:"city"`
+	State                     string         `json:"state"`
+	Zip                       string         `json:"zip"`
+	Country                   string         `json:"country"`
+	VerificationCode          sql.NullString `json:"verification_code"`
+	VerificationCodeExpiresAt sql.NullTime   `json:"verification_code_expires_at"`
+	UpdatedAt                 time.Time      `json:"updated_at"`
+	LastLoginAt               sql.NullTime   `json:"last_login_at"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
@@ -192,14 +200,15 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 		arg.IsMfaEnabled,
 		arg.Role,
 		arg.Status,
-		arg.FirstName,
-		arg.LastName,
+		arg.Username,
 		arg.Phone,
 		arg.Address,
 		arg.City,
 		arg.State,
 		arg.Zip,
 		arg.Country,
+		arg.VerificationCode,
+		arg.VerificationCodeExpiresAt,
 		arg.UpdatedAt,
 		arg.LastLoginAt,
 	)

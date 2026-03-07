@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"net/url"
 
 	httperrors "github.com/chuuch/expense-tracker-backend/internal/auth/adapter/in/http/errors"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/usecase/interfaces"
@@ -62,8 +63,7 @@ func (h *UserHandler) Register(c *echo.Context) error {
 		c.Request().Context(),
 		req.Email,
 		req.Password,
-		req.FirstName,
-		req.LastName,
+		req.Username,
 		req.Phone,
 		req.Address,
 		req.City,
@@ -176,6 +176,7 @@ func (h *UserHandler) Logout(c *echo.Context) error {
 }
 
 func (h *UserHandler) GoogleOAuthStart(c *echo.Context) error {
+	redirectURI := c.QueryParam("redirect_uri")
 	provider, err := goth.GetProvider("google")
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Google provider not configured"})
@@ -188,7 +189,7 @@ func (h *UserHandler) GoogleOAuthStart(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to begin Google auth"})
 	}
 
-	url, err := sess.GetAuthURL()
+	authURL, err := sess.GetAuthURL()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to get Google auth URL"})
 	}
@@ -197,7 +198,11 @@ func (h *UserHandler) GoogleOAuthStart(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to persist OAuth session"})
 	}
 
-	return c.Redirect(http.StatusFound, url)
+	if redirectURI != "" {
+		c.Response().Header().Set("Set-Cookie", "oauth_redirect_uri="+url.QueryEscape(redirectURI)+"; Path=/; HttpOnly; SameSite=Lax; Max-Age=600")
+	}
+
+	return c.Redirect(http.StatusFound, authURL)
 }
 
 func (h *UserHandler) GoogleOAuthCallback(c *echo.Context) error {
@@ -210,18 +215,12 @@ func (h *UserHandler) GoogleOAuthCallback(c *echo.Context) error {
 	user, err := h.usecase.GetByEmail(ctx, gUser.Email)
 	if err != nil {
 		randomPassword := utils.GenerateULID()
-		firstName := gUser.FirstName
-		lastName := gUser.LastName
-		if firstName == "" && lastName == "" && gUser.Name != "" {
-			firstName = gUser.Name
-		}
 
 		user, err = h.usecase.Register(
 			ctx,
 			gUser.Email,
 			randomPassword,
-			firstName,
-			lastName,
+			gUser.Name,
 			"",
 			"",
 			"",
@@ -274,12 +273,6 @@ func (h *UserHandler) GoogleMobileLogin(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Invalid Google token"})
 	}
 
-	firstName := info.FirstName
-	lastName := info.LastName
-	if firstName == "" && lastName == "" && info.Name != "" {
-		firstName = info.Name
-	}
-
 	user, err := h.usecase.GetByEmail(ctx, info.Email)
 	if err != nil {
 		randomPassword := utils.GenerateULID()
@@ -287,8 +280,7 @@ func (h *UserHandler) GoogleMobileLogin(c *echo.Context) error {
 			ctx,
 			info.Email,
 			randomPassword,
-			firstName,
-			lastName,
+			info.Username,
 			"",
 			"",
 			"",
@@ -348,8 +340,7 @@ func (h *UserHandler) UpdateUser(c *echo.Context) error {
 	user, err := h.usecase.UpdateUser(
 		c.Request().Context(),
 		id,
-		req.FirstName,
-		req.LastName,
+		req.Username,
 		req.Phone,
 		req.Address,
 		req.City,

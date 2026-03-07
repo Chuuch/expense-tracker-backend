@@ -10,8 +10,7 @@ func mapUserToResponse(u *domain.User) UserResponse {
 	return UserResponse{
 		ID:           u.ID,
 		Email:        u.Email,
-		FirstName:    u.Profile.FirstName,
-		LastName:     u.Profile.LastName,
+		Username:    u.Profile.Username,
 		Phone:        u.Profile.Phone,
 		Address:      u.Profile.Address,
 		City:         u.Profile.City,

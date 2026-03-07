@@ -49,7 +49,6 @@ func newDomainUser(email string) *domain.User {
 		email,
 		"hashed-password",
 		"Test",
-		"User",
 		"+15550001111",
 		"123 Main",
 		"Austin",
@@ -114,8 +113,7 @@ func TestUserRepository_UpdateUser_PersistsChanges(t *testing.T) {
 		t.Fatalf("CreateUser failed: %v", err)
 	}
 
-	created.Profile.FirstName = "Updated"
-	created.Profile.LastName = "Name"
+	created.Profile.Username = "Updated"
 	created.Profile.City = "Dallas"
 	created.UpdatedAt = time.Now()
 
@@ -130,7 +128,7 @@ func TestUserRepository_UpdateUser_PersistsChanges(t *testing.T) {
 	if got == nil {
 		t.Fatalf("expected user after update")
 	}
-	if got.Profile.FirstName != "Updated" || got.Profile.LastName != "Name" || got.Profile.City != "Dallas" {
+	if got.Profile.Username != "Updated" || got.Profile.City != "Dallas" {
 		t.Fatalf("update not persisted: %+v", got.Profile)
 	}
 }

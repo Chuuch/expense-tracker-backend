@@ -67,7 +67,6 @@ func newTestUserForExpenses(t *testing.T, userRepo *authrepo.UserRepository, ctx
 		"Austin",
 		"TX",
 		"78701",
-		"US",
 	)
 
 	created, err := userRepo.CreateUser(ctx, u)

@@ -67,7 +67,6 @@ func newTestUserForGoals(t *testing.T, userRepo *authrepo.UserRepository, ctx co
 		"Austin",
 		"TX",
 		"78701",
-		"US",
 	)
 
 	created, err := userRepo.CreateUser(ctx, u)
