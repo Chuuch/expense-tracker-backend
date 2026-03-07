@@ -772,3 +772,149 @@ func TestVerifyEmail_BindError_Returns400(t *testing.T) {
 		t.Fatalf("expected status 400, got %d body=%s", rec.Code, rec.Body.String())
 	}
 }
+
+func TestLogin_UserNotActive_Returns403(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
+	e := newEchoWithValidator()
+
+	body := `{"email":"test@example.com","password":"Password123!"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewBufferString(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	userUC.EXPECT().
+		Login(gomock.Any(), "test@example.com", "Password123!").
+		Return(nil, usecase.ErrUserNotActive).
+		Times(1)
+
+	if err := h.Login(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected status 403, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	var resp authhttp.ErrorResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("unmarshal response: %v", err)
+	}
+	if resp.Error != "Please verify your email to sign in" {
+		t.Fatalf("unexpected error message: %q", resp.Error)
+	}
+}
+
+func TestResendVerificationEmail_Success_Returns204(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
+	e := newEchoWithValidator()
+
+	body := `{"email":"test@example.com"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/resend-verification-email", bytes.NewBufferString(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	userUC.EXPECT().
+		ResendVerificationEmail(gomock.Any(), "test@example.com").
+		Return(nil).
+		Times(1)
+
+	if err := h.ResendVerificationEmail(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("expected status 204, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestResendVerificationEmail_UserNotFound_Returns404(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
+	e := newEchoWithValidator()
+
+	body := `{"email":"missing@example.com"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/resend-verification-email", bytes.NewBufferString(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	userUC.EXPECT().
+		ResendVerificationEmail(gomock.Any(), "missing@example.com").
+		Return(usecase.ErrUserNotFound).
+		Times(1)
+
+	if err := h.ResendVerificationEmail(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("expected status 404, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestResendVerificationEmail_AlreadyActive_Returns400(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
+	e := newEchoWithValidator()
+
+	body := `{"email":"test@example.com"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/resend-verification-email", bytes.NewBufferString(body))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	userUC.EXPECT().
+		ResendVerificationEmail(gomock.Any(), "test@example.com").
+		Return(usecase.ErrUserAlreadyActive).
+		Times(1)
+
+	if err := h.ResendVerificationEmail(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestResendVerificationEmail_BindError_Returns400(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUC := mocks.NewMockUserUsecase(ctrl)
+	tokenUC := mocks.NewMockTokenUsecase(ctrl)
+
+	h := authhttp.NewUserHandler(userUC, tokenUC, testConfig())
+	e := newEchoWithValidator()
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/resend-verification-email", bytes.NewBufferString("{invalid"))
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	if err := h.ResendVerificationEmail(c); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d body=%s", rec.Code, rec.Body.String())
+	}
+}
