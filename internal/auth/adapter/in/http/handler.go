@@ -63,8 +63,7 @@ func (h *UserHandler) Register(c *echo.Context) error {
 		c.Request().Context(),
 		req.Email,
 		req.Password,
-		req.FirstName,
-		req.LastName,
+		req.Username,
 		req.Phone,
 		req.Address,
 		req.City,
@@ -216,18 +215,12 @@ func (h *UserHandler) GoogleOAuthCallback(c *echo.Context) error {
 	user, err := h.usecase.GetByEmail(ctx, gUser.Email)
 	if err != nil {
 		randomPassword := utils.GenerateULID()
-		firstName := gUser.FirstName
-		lastName := gUser.LastName
-		if firstName == "" && lastName == "" && gUser.Name != "" {
-			firstName = gUser.Name
-		}
 
 		user, err = h.usecase.Register(
 			ctx,
 			gUser.Email,
 			randomPassword,
-			firstName,
-			lastName,
+			gUser.Name,
 			"",
 			"",
 			"",
@@ -280,12 +273,6 @@ func (h *UserHandler) GoogleMobileLogin(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Invalid Google token"})
 	}
 
-	firstName := info.FirstName
-	lastName := info.LastName
-	if firstName == "" && lastName == "" && info.Name != "" {
-		firstName = info.Name
-	}
-
 	user, err := h.usecase.GetByEmail(ctx, info.Email)
 	if err != nil {
 		randomPassword := utils.GenerateULID()
@@ -293,8 +280,7 @@ func (h *UserHandler) GoogleMobileLogin(c *echo.Context) error {
 			ctx,
 			info.Email,
 			randomPassword,
-			firstName,
-			lastName,
+			info.Username,
 			"",
 			"",
 			"",
@@ -354,8 +340,7 @@ func (h *UserHandler) UpdateUser(c *echo.Context) error {
 	user, err := h.usecase.UpdateUser(
 		c.Request().Context(),
 		id,
-		req.FirstName,
-		req.LastName,
+		req.Username,
 		req.Phone,
 		req.Address,
 		req.City,
