@@ -316,6 +316,23 @@ func (h *UserHandler) GoogleMobileLogin(c *echo.Context) error {
 	})
 }
 
+func (h *UserHandler) VerifyEmail(c *echo.Context) error {
+	var req VerifyEmailRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Invalid request body"})
+	}
+	if err := c.Validate(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, httperrors.Response{Error: "Validation failed"})
+	}
+
+	user, err := h.usecase.VerifyEmail(c.Request().Context(), req.Email, req.Code)
+	if err != nil {
+		status, resp := httperrors.Map(err)
+		return c.JSON(status, resp)
+	}
+	return c.JSON(http.StatusOK, mapUserToResponse(user))
+}
+
 func (h *UserHandler) GetByID(c *echo.Context) error {
 	id := c.Param("id")
 	user, err := h.usecase.GetByID(c.Request().Context(), id)
