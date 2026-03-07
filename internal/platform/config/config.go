@@ -16,6 +16,7 @@ type Config struct {
 	Plaid       PlaidConfig       `mapstructure:",squash"`
 	Redis       RedisConfig       `mapstructure:",squash"`
 	GoogleOAuth GoogleOAuthConfig `mapstructure:",squash"`
+	Resend      ResendConfig      `mapstructure:",squash"`
 }
 
 type AppConfig struct {
@@ -59,6 +60,11 @@ type GoogleOAuthConfig struct {
 	ClientID     string `mapstructure:"GOOGLE_OAUTH_CLIENT_ID"`
 	ClientSecret string `mapstructure:"GOOGLE_OAUTH_CLIENT_SECRET"`
 	CallbackURL  string `mapstructure:"GOOGLE_CALLBACK_URL"`
+}
+
+type ResendConfig struct {
+	APIKey string `mapstructure:"RESEND_API_KEY"`
+	From   string `mapstructure:"RESEND_FROM"`
 }
 
 func Load() (*Config, error) {
@@ -119,10 +125,10 @@ func (c *Config) validate() error {
 		return fmt.Errorf("invalid config: REDIS_PORT is required")
 	}
 	if (c.GoogleOAuth.ClientID != "" || c.GoogleOAuth.ClientSecret != "" || c.GoogleOAuth.CallbackURL != "") &&
-    (strings.TrimSpace(c.GoogleOAuth.ClientID) == "" ||
-        strings.TrimSpace(c.GoogleOAuth.ClientSecret) == "" ||
-        strings.TrimSpace(c.GoogleOAuth.CallbackURL) == "") {
-    return fmt.Errorf("invalid config: GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, and GOOGLE_CALLBACK_URL must all be set together")
-}
+		(strings.TrimSpace(c.GoogleOAuth.ClientID) == "" ||
+			strings.TrimSpace(c.GoogleOAuth.ClientSecret) == "" ||
+			strings.TrimSpace(c.GoogleOAuth.CallbackURL) == "") {
+		return fmt.Errorf("invalid config: GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, and GOOGLE_CALLBACK_URL must all be set together")
+	}
 	return nil
 }

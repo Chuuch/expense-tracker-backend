@@ -61,12 +61,6 @@ func newTestUserForExpenses(t *testing.T, userRepo *authrepo.UserRepository, ctx
 		uniqueExpenseEmail("expense_repo"),
 		"hashed-password",
 		"Expense",
-		"Tester",
-		"+15550002222",
-		"123 Main",
-		"Austin",
-		"TX",
-		"78701",
 	)
 
 	created, err := userRepo.CreateUser(ctx, u)

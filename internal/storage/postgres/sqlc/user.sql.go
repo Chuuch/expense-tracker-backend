@@ -14,14 +14,13 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     id, email, password_hash, is_mfa_enabled, role, status,
-    username, phone, address, city, state, zip, country,
-    verification_code, verification_code_expires_at,
+    username, verification_code, verification_code_expires_at,
     created_at, updated_at, last_login_at, deleted_at
 ) VALUES (
     $1, $2, $3, $4, $5, $6,
-    $7, $8, $9, $10, $11, $12, $13,
-    $14, $15, $16, $17, $18, $19
-) RETURNING id, email, password_hash, is_mfa_enabled, verification_code, verification_code_expires_at, role, status, username, phone, address, city, state, zip, country, created_at, updated_at, last_login_at, deleted_at
+    $7, $8, $9,
+    $10, $11, $12, $13
+) RETURNING id, email, password_hash, is_mfa_enabled, verification_code, verification_code_expires_at, role, status, username, created_at, updated_at, last_login_at, deleted_at
 `
 
 type CreateUserParams struct {
@@ -32,12 +31,6 @@ type CreateUserParams struct {
 	Role                      string         `json:"role"`
 	Status                    string         `json:"status"`
 	Username                  string         `json:"username"`
-	Phone                     string         `json:"phone"`
-	Address                   string         `json:"address"`
-	City                      string         `json:"city"`
-	State                     string         `json:"state"`
-	Zip                       string         `json:"zip"`
-	Country                   string         `json:"country"`
 	VerificationCode          sql.NullString `json:"verification_code"`
 	VerificationCodeExpiresAt sql.NullTime   `json:"verification_code_expires_at"`
 	CreatedAt                 time.Time      `json:"created_at"`
@@ -55,12 +48,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Role,
 		arg.Status,
 		arg.Username,
-		arg.Phone,
-		arg.Address,
-		arg.City,
-		arg.State,
-		arg.Zip,
-		arg.Country,
 		arg.VerificationCode,
 		arg.VerificationCodeExpiresAt,
 		arg.CreatedAt,
@@ -79,12 +66,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Role,
 		&i.Status,
 		&i.Username,
-		&i.Phone,
-		&i.Address,
-		&i.City,
-		&i.State,
-		&i.Zip,
-		&i.Country,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.LastLoginAt,
@@ -103,7 +84,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id string) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password_hash, is_mfa_enabled, verification_code, verification_code_expires_at, role, status, username, phone, address, city, state, zip, country, created_at, updated_at, last_login_at, deleted_at FROM users WHERE email = $1 AND deleted_at IS NULL
+SELECT id, email, password_hash, is_mfa_enabled, verification_code, verification_code_expires_at, role, status, username, created_at, updated_at, last_login_at, deleted_at FROM users WHERE email = $1 AND deleted_at IS NULL
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -119,12 +100,6 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Role,
 		&i.Status,
 		&i.Username,
-		&i.Phone,
-		&i.Address,
-		&i.City,
-		&i.State,
-		&i.Zip,
-		&i.Country,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.LastLoginAt,
@@ -134,7 +109,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password_hash, is_mfa_enabled, verification_code, verification_code_expires_at, role, status, username, phone, address, city, state, zip, country, created_at, updated_at, last_login_at, deleted_at FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1
+SELECT id, email, password_hash, is_mfa_enabled, verification_code, verification_code_expires_at, role, status, username, created_at, updated_at, last_login_at, deleted_at FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
@@ -150,12 +125,6 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 		&i.Role,
 		&i.Status,
 		&i.Username,
-		&i.Phone,
-		&i.Address,
-		&i.City,
-		&i.State,
-		&i.Zip,
-		&i.Country,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.LastLoginAt,
@@ -166,9 +135,8 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 
 const updateUser = `-- name: UpdateUser :exec
 UPDATE users SET email = $2, password_hash = $3, is_mfa_enabled = $4, role = $5, status = $6,
-    username = $7, phone = $8, address = $9, city = $10, state = $11, zip = $12, country = $13,
-    verification_code = $14, verification_code_expires_at = $15,
-    updated_at = $16, last_login_at = $17
+    username = $7, verification_code = $8, verification_code_expires_at = $9,
+    updated_at = $10, last_login_at = $11
 WHERE id = $1 AND deleted_at IS NULL
 `
 
@@ -180,12 +148,6 @@ type UpdateUserParams struct {
 	Role                      string         `json:"role"`
 	Status                    string         `json:"status"`
 	Username                  string         `json:"username"`
-	Phone                     string         `json:"phone"`
-	Address                   string         `json:"address"`
-	City                      string         `json:"city"`
-	State                     string         `json:"state"`
-	Zip                       string         `json:"zip"`
-	Country                   string         `json:"country"`
 	VerificationCode          sql.NullString `json:"verification_code"`
 	VerificationCodeExpiresAt sql.NullTime   `json:"verification_code_expires_at"`
 	UpdatedAt                 time.Time      `json:"updated_at"`
@@ -201,12 +163,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
 		arg.Role,
 		arg.Status,
 		arg.Username,
-		arg.Phone,
-		arg.Address,
-		arg.City,
-		arg.State,
-		arg.Zip,
-		arg.Country,
 		arg.VerificationCode,
 		arg.VerificationCodeExpiresAt,
 		arg.UpdatedAt,

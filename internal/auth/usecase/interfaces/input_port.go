@@ -7,12 +7,14 @@ import (
 )
 
 type UserUsecase interface {
-	Register(ctx context.Context, email, password, username, phone, address, city, state, zip, country string) (*domain.User, error)
+	Register(ctx context.Context, email, password, username string) (*domain.User, error)
 	Login(ctx context.Context, email, password string) (*domain.User, error)
 	GetByID(ctx context.Context, id string) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
-	UpdateUser(ctx context.Context, id, username, phone, address, city, state, zip, country string) (*domain.User, error)
+	UpdateUser(ctx context.Context, id, username string) (*domain.User, error)
 	DeleteUser(ctx context.Context, id string) error
+	VerifyEmail(ctx context.Context, email, code string) (*domain.User, error)
+	ResendVerificationEmail(ctx context.Context, email string) error
 }
 
 type RefreshTokenUsecase interface {

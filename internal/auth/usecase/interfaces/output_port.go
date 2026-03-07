@@ -31,3 +31,11 @@ type TokenUsecase interface {
 	GenerateToken(user *domain.User, duration time.Duration) (string, error)
 	VerifyToken(token string) (*domain.TokenClaims, error)
 }
+
+type VerificationEmailEnqueuer interface {
+	EnqueueSendVerificationEmail(ctx context.Context, userID string) error
+}
+
+type VerificationEmailSender interface {
+	SendVerificationEmail(ctx context.Context, toEmail, code string) error
+}

@@ -36,45 +36,26 @@ type User struct {
 
 type Profile struct {
 	Username string
-	Phone    string
-	Address  string
-	City     string
-	State    string
-	Zip      string
-	Country  string
 }
 
 func NewUser(
-	id,
-	email,
-	passwordHash,
-	username,
-	phone,
-	address,
-	city,
-	state,
-	zip,
-	country string) *User {
+	id string,
+	email string,
+	passwordHash string,
+	username string,
+) *User {
 	return &User{
-		ID:               id,
-		Email:            email,
-		PasswordHash:     passwordHash,
-		VerificationCode: nil,
+		ID:                        id,
+		Email:                     email,
+		PasswordHash:              passwordHash,
+		VerificationCode:          nil,
 		VerificationCodeExpiresAt: nil,
-		Role:             RoleUser,
-		Status:           StatusPending,
-		Profile: Profile{
-			Username: username,
-			Phone:    phone,
-			Address:  address,
-			City:     city,
-			State:    state,
-			Zip:      zip,
-			Country:  country,
-		},
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-		LastLoginAt: nil,
-		DeletedAt:   nil,
+		Role:                      RoleUser,
+		Status:                    StatusPending,
+		Profile:                   Profile{Username: username},
+		CreatedAt:                 time.Now(),
+		UpdatedAt:                 time.Now(),
+		LastLoginAt:               nil,
+		DeletedAt:                 nil,
 	}
 }

@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	postgresdb "github.com/chuuch/expense-tracker-backend/internal/storage/postgres/sqlc"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
+	postgresdb "github.com/chuuch/expense-tracker-backend/internal/storage/postgres/sqlc"
 )
 
 func toDomainUser(u postgresdb.User) *domain.User {
@@ -34,27 +34,19 @@ func toDomainUser(u postgresdb.User) *domain.User {
 	}
 
 	return &domain.User{
-		ID:           u.ID,
-		Email:        u.Email,
-		PasswordHash: u.PasswordHash,
-		IsMFAEnabled: u.IsMfaEnabled,
-		VerificationCode: verificationCode,
+		ID:                        u.ID,
+		Email:                     u.Email,
+		PasswordHash:              u.PasswordHash,
+		IsMFAEnabled:              u.IsMfaEnabled,
+		VerificationCode:          verificationCode,
 		VerificationCodeExpiresAt: verificationCodeExpiresAt,
-		Role:         domain.UserRole(u.Role),
-		Status:       domain.UserStatus(u.Status),
-		Profile: domain.Profile{
-			Username: u.Username,
-			Phone:     u.Phone,
-			Address:   u.Address,
-			City:      u.City,
-			State:     u.State,
-			Zip:       u.Zip,
-			Country:   u.Country,
-		},
-		CreatedAt:   u.CreatedAt,
-		UpdatedAt:   u.UpdatedAt,
-		LastLoginAt: lastLoginAt,
-		DeletedAt:   deletedAt,
+		Role:                      domain.UserRole(u.Role),
+		Status:                    domain.UserStatus(u.Status),
+		Profile:                   domain.Profile{Username: u.Username},
+		CreatedAt:                 u.CreatedAt,
+		UpdatedAt:                 u.UpdatedAt,
+		LastLoginAt:               lastLoginAt,
+		DeletedAt:                 deletedAt,
 	}
 }
 

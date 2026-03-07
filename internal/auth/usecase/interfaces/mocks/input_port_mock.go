@@ -101,33 +101,62 @@ func (mr *MockUserUsecaseMockRecorder) Login(ctx, email, password any) *gomock.C
 }
 
 // Register mocks base method.
-func (m *MockUserUsecase) Register(ctx context.Context, email, password, username, phone, address, city, state, zip, country string) (*domain.User, error) {
+func (m *MockUserUsecase) Register(ctx context.Context, email, password, username string) (*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Register", ctx, email, password, username, phone, address, city, state, zip, country)
+	ret := m.ctrl.Call(m, "Register", ctx, email, password, username)
 	ret0, _ := ret[0].(*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Register indicates an expected call of Register.
-func (mr *MockUserUsecaseMockRecorder) Register(ctx, email, password, username, phone, address, city, state, zip, country any) *gomock.Call {
+func (mr *MockUserUsecaseMockRecorder) Register(ctx, email, password, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUserUsecase)(nil).Register), ctx, email, password, username, phone, address, city, state, zip, country)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockUserUsecase)(nil).Register), ctx, email, password, username)
+}
+
+// ResendVerificationEmail mocks base method.
+func (m *MockUserUsecase) ResendVerificationEmail(ctx context.Context, email string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResendVerificationEmail", ctx, email)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResendVerificationEmail indicates an expected call of ResendVerificationEmail.
+func (mr *MockUserUsecaseMockRecorder) ResendVerificationEmail(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResendVerificationEmail", reflect.TypeOf((*MockUserUsecase)(nil).ResendVerificationEmail), ctx, email)
 }
 
 // UpdateUser mocks base method.
-func (m *MockUserUsecase) UpdateUser(ctx context.Context, id, username, phone, address, city, state, zip, country string) (*domain.User, error) {
+func (m *MockUserUsecase) UpdateUser(ctx context.Context, id, username string) (*domain.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUser", ctx, id, username, phone, address, city, state, zip, country)
+	ret := m.ctrl.Call(m, "UpdateUser", ctx, id, username)
 	ret0, _ := ret[0].(*domain.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateUser indicates an expected call of UpdateUser.
-func (mr *MockUserUsecaseMockRecorder) UpdateUser(ctx, id, username, phone, address, city, state, zip, country any) *gomock.Call {
+func (mr *MockUserUsecaseMockRecorder) UpdateUser(ctx, id, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserUsecase)(nil).UpdateUser), ctx, id, username, phone, address, city, state, zip, country)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserUsecase)(nil).UpdateUser), ctx, id, username)
+}
+
+// VerifyEmail mocks base method.
+func (m *MockUserUsecase) VerifyEmail(ctx context.Context, email, code string) (*domain.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyEmail", ctx, email, code)
+	ret0, _ := ret[0].(*domain.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VerifyEmail indicates an expected call of VerifyEmail.
+func (mr *MockUserUsecaseMockRecorder) VerifyEmail(ctx, email, code any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyEmail", reflect.TypeOf((*MockUserUsecase)(nil).VerifyEmail), ctx, email, code)
 }
 
 // MockRefreshTokenUsecase is a mock of RefreshTokenUsecase interface.

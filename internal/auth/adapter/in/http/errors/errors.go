@@ -31,6 +31,17 @@ func Map(err error) (int, Response) {
 
 	case errors.Is(err, authusecase.ErrRefreshTokenRevoked), errors.Is(err, domain.ErrRefreshTokenRevoked):
 		return http.StatusUnauthorized, Response{Error: "Refresh token revoked"}
+	case errors.Is(err, authusecase.ErrInvalidVerificationCode), errors.Is(err, domain.ErrInvalidVerificationCode):
+		return http.StatusBadRequest, Response{Error: "Invalid verification code"}
+
+	case errors.Is(err, authusecase.ErrVerificationCodeExpired), errors.Is(err, domain.ErrVerificationCodeExpired):
+		return http.StatusBadRequest, Response{Error: "Verification code expired"}
+
+	case errors.Is(err, authusecase.ErrUserNotActive), errors.Is(err, domain.ErrUserNotActive):
+		return http.StatusForbidden, Response{Error: "Please verify your email to sign in"}
+
+	case errors.Is(err, authusecase.ErrUserAlreadyActive), errors.Is(err, domain.ErrUserAlreadyActive):
+		return http.StatusBadRequest, Response{Error: "Email already verified"}
 
 	default:
 		return http.StatusInternalServerError, Response{Error: "Internal server error"}

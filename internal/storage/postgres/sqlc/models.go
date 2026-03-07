@@ -65,12 +65,6 @@ type User struct {
 	Role                      string         `json:"role"`
 	Status                    string         `json:"status"`
 	Username                  string         `json:"username"`
-	Phone                     string         `json:"phone"`
-	Address                   string         `json:"address"`
-	City                      string         `json:"city"`
-	State                     string         `json:"state"`
-	Zip                       string         `json:"zip"`
-	Country                   string         `json:"country"`
 	CreatedAt                 time.Time      `json:"created_at"`
 	UpdatedAt                 time.Time      `json:"updated_at"`
 	LastLoginAt               sql.NullTime   `json:"last_login_at"`
