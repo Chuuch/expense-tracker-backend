@@ -302,3 +302,79 @@ func (mr *MockTokenUsecaseMockRecorder) VerifyToken(token any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyToken", reflect.TypeOf((*MockTokenUsecase)(nil).VerifyToken), token)
 }
+
+// MockVerificationEmailEnqueuer is a mock of VerificationEmailEnqueuer interface.
+type MockVerificationEmailEnqueuer struct {
+	ctrl     *gomock.Controller
+	recorder *MockVerificationEmailEnqueuerMockRecorder
+	isgomock struct{}
+}
+
+// MockVerificationEmailEnqueuerMockRecorder is the mock recorder for MockVerificationEmailEnqueuer.
+type MockVerificationEmailEnqueuerMockRecorder struct {
+	mock *MockVerificationEmailEnqueuer
+}
+
+// NewMockVerificationEmailEnqueuer creates a new mock instance.
+func NewMockVerificationEmailEnqueuer(ctrl *gomock.Controller) *MockVerificationEmailEnqueuer {
+	mock := &MockVerificationEmailEnqueuer{ctrl: ctrl}
+	mock.recorder = &MockVerificationEmailEnqueuerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockVerificationEmailEnqueuer) EXPECT() *MockVerificationEmailEnqueuerMockRecorder {
+	return m.recorder
+}
+
+// EnqueueSendVerificationEmail mocks base method.
+func (m *MockVerificationEmailEnqueuer) EnqueueSendVerificationEmail(ctx context.Context, userID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "EnqueueSendVerificationEmail", ctx, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// EnqueueSendVerificationEmail indicates an expected call of EnqueueSendVerificationEmail.
+func (mr *MockVerificationEmailEnqueuerMockRecorder) EnqueueSendVerificationEmail(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EnqueueSendVerificationEmail", reflect.TypeOf((*MockVerificationEmailEnqueuer)(nil).EnqueueSendVerificationEmail), ctx, userID)
+}
+
+// MockVerificationEmailSender is a mock of VerificationEmailSender interface.
+type MockVerificationEmailSender struct {
+	ctrl     *gomock.Controller
+	recorder *MockVerificationEmailSenderMockRecorder
+	isgomock struct{}
+}
+
+// MockVerificationEmailSenderMockRecorder is the mock recorder for MockVerificationEmailSender.
+type MockVerificationEmailSenderMockRecorder struct {
+	mock *MockVerificationEmailSender
+}
+
+// NewMockVerificationEmailSender creates a new mock instance.
+func NewMockVerificationEmailSender(ctrl *gomock.Controller) *MockVerificationEmailSender {
+	mock := &MockVerificationEmailSender{ctrl: ctrl}
+	mock.recorder = &MockVerificationEmailSenderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockVerificationEmailSender) EXPECT() *MockVerificationEmailSenderMockRecorder {
+	return m.recorder
+}
+
+// SendVerificationEmail mocks base method.
+func (m *MockVerificationEmailSender) SendVerificationEmail(ctx context.Context, toEmail, code string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendVerificationEmail", ctx, toEmail, code)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendVerificationEmail indicates an expected call of SendVerificationEmail.
+func (mr *MockVerificationEmailSenderMockRecorder) SendVerificationEmail(ctx, toEmail, code any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVerificationEmail", reflect.TypeOf((*MockVerificationEmailSender)(nil).SendVerificationEmail), ctx, toEmail, code)
+}
