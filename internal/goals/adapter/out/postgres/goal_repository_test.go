@@ -61,12 +61,6 @@ func newTestUserForGoals(t *testing.T, userRepo *authrepo.UserRepository, ctx co
 		uniqueGoalEmail("goals_repo"),
 		"hashed-password",
 		"Goal",
-		"Tester",
-		"+15550003333",
-		"123 Main",
-		"Austin",
-		"TX",
-		"78701",
 	)
 
 	created, err := userRepo.CreateUser(ctx, u)
