@@ -134,6 +134,7 @@ func TestUserUsecase_Login_Success_UpdatesLastLogin(t *testing.T) {
 		ID:           "u1",
 		Email:        "test@example.com",
 		PasswordHash: string(hash),
+		Status:       domain.StatusActive,
 	}
 
 	repo.EXPECT().
