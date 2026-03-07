@@ -3,8 +3,7 @@ package http
 type RegisterRequest struct {
 	Email     string `json:"email" validate:"required,email"`
 	Password  string `json:"password" validate:"required,min=8"`
-	FirstName string `json:"first_name" validate:"required"`
-	LastName  string `json:"last_name" validate:"required"`
+	Username string `json:"username" validate:"required"`
 	Phone     string `json:"phone" validate:"required"`
 	Address   string `json:"address"`
 	City      string `json:"city"`
@@ -23,8 +22,7 @@ type RefreshTokenRequest struct {
 }
 
 type UpdateUserRequest struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	Username string `json:"username"`
 	Phone     string `json:"phone"`
 	Address   string `json:"address"`
 	City      string `json:"city"`
