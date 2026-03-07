@@ -7,6 +7,24 @@ services:
       redis:
         condition: service_started
 
+  worker:
+    build: .
+    command: ["go", "run", "./cmd/worker"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      DB_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-}
+      APP_ENV: ${APP_ENV:-development}
+
   db:
     image: postgres:17-alpine
     ports:
