@@ -64,12 +64,6 @@ func (h *UserHandler) Register(c *echo.Context) error {
 		req.Email,
 		req.Password,
 		req.Username,
-		req.Phone,
-		req.Address,
-		req.City,
-		req.State,
-		req.Zip,
-		req.Country,
 	)
 	if err != nil {
 		status, resp := httperrors.Map(err)
@@ -221,12 +215,6 @@ func (h *UserHandler) GoogleOAuthCallback(c *echo.Context) error {
 			gUser.Email,
 			randomPassword,
 			gUser.Name,
-			"",
-			"",
-			"",
-			"",
-			"",
-			"",
 		)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to register user"})
@@ -281,12 +269,6 @@ func (h *UserHandler) GoogleMobileLogin(c *echo.Context) error {
 			info.Email,
 			randomPassword,
 			info.Username,
-			"",
-			"",
-			"",
-			"",
-			"",
-			"",
 		)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to register user"})
@@ -373,12 +355,6 @@ func (h *UserHandler) UpdateUser(c *echo.Context) error {
 		c.Request().Context(),
 		id,
 		req.Username,
-		req.Phone,
-		req.Address,
-		req.City,
-		req.State,
-		req.Zip,
-		req.Country,
 	)
 
 	if err != nil {
