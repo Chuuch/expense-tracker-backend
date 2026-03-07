@@ -23,6 +23,8 @@ var (
 	ErrUserNotPending     = domain.ErrUserNotPending
 	ErrUserNotAdmin       = domain.ErrUserNotAdmin
 	ErrUserNotSupport     = domain.ErrUserNotSupport
+	ErrInvalidVerificationCode = domain.ErrInvalidVerificationCode
+	ErrVerificationCodeExpired = domain.ErrVerificationCodeExpired
 )
 
 type UserUsecase struct {
@@ -114,6 +116,33 @@ func (u *UserUsecase) Login(ctx context.Context, email, password string) (*domai
 		return nil, fmt.Errorf("usecase.UpdateLastLoginAt: %w", err)
 	}
 
+	return user, nil
+}
+
+func (u *UserUsecase) VerifyEmail(ctx context.Context, email, code string) (*domain.User, error) {
+	user, err := u.userRepo.GetByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf("usecase.VerifyEmail: %w", err)
+	}
+	if user == nil {
+		return nil, ErrUserNotFound
+	}
+	if user.VerificationCode == nil || user.VerificationCodeExpiresAt == nil {
+		return nil, ErrInvalidVerificationCode
+	}
+	if time.Now().After(*user.VerificationCodeExpiresAt) {
+		return nil, ErrVerificationCodeExpired
+	}
+	if *user.VerificationCode != code {
+		return nil, ErrInvalidVerificationCode
+	}
+	user.VerificationCode = nil
+	user.VerificationCodeExpiresAt = nil
+	user.Status = domain.StatusActive
+	user.UpdatedAt = time.Now()
+	if err := u.userRepo.UpdateUser(ctx, user); err != nil {
+		return nil, fmt.Errorf("usecase.VerifyEmail UpdateUser: %w", err)
+	}
 	return user, nil
 }
 
