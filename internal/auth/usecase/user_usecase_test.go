@@ -469,3 +469,132 @@ func TestUserUsecase_VerifyEmail_Success_ClearsCodeAndSetsActive(t *testing.T) {
 		t.Fatalf("expected user with status active, got %+v", got)
 	}
 }
+
+func TestUserUsecase_Login_UserNotActive_ReturnsErrUserNotActive(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mocks.NewMockUserRepository(ctrl)
+	uc := usecase.NewUserUsecase(repo, nil)
+	ctx := context.Background()
+
+	hash, err := bcrypt.GenerateFromPassword([]byte("Password123!"), bcrypt.DefaultCost)
+	if err != nil {
+		t.Fatalf("failed to generate hash: %v", err)
+	}
+
+	user := &domain.User{
+		ID:           "u1",
+		Email:        "test@example.com",
+		PasswordHash: string(hash),
+		Status:       domain.StatusPending,
+	}
+
+	repo.EXPECT().
+		GetByEmail(ctx, "test@example.com").
+		Return(user, nil).
+		Times(1)
+
+	_, err = uc.Login(ctx, "test@example.com", "Password123!")
+	if !errors.Is(err, usecase.ErrUserNotActive) {
+		t.Fatalf("expected ErrUserNotActive, got: %v", err)
+	}
+}
+
+func TestUserUsecase_ResendVerificationEmail_UserNotFound_ReturnsErrUserNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mocks.NewMockUserRepository(ctrl)
+	uc := usecase.NewUserUsecase(repo, nil)
+	ctx := context.Background()
+
+	repo.EXPECT().
+		GetByEmail(ctx, "missing@example.com").
+		Return(nil, nil).
+		Times(1)
+
+	err := uc.ResendVerificationEmail(ctx, "missing@example.com")
+	if !errors.Is(err, usecase.ErrUserNotFound) {
+		t.Fatalf("expected ErrUserNotFound, got: %v", err)
+	}
+}
+
+func TestUserUsecase_ResendVerificationEmail_AlreadyActive_ReturnsErrUserAlreadyActive(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mocks.NewMockUserRepository(ctrl)
+	uc := usecase.NewUserUsecase(repo, nil)
+	ctx := context.Background()
+
+	user := &domain.User{
+		ID:     "u1",
+		Email:  "test@example.com",
+		Status: domain.StatusActive,
+	}
+
+	repo.EXPECT().
+		GetByEmail(ctx, "test@example.com").
+		Return(user, nil).
+		Times(1)
+
+	err := uc.ResendVerificationEmail(ctx, "test@example.com")
+	if !errors.Is(err, usecase.ErrUserAlreadyActive) {
+		t.Fatalf("expected ErrUserAlreadyActive, got: %v", err)
+	}
+}
+
+func TestUserUsecase_ResendVerificationEmail_Success_UpdatesUserWithNewCode(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mocks.NewMockUserRepository(ctrl)
+	uc := usecase.NewUserUsecase(repo, nil)
+	ctx := context.Background()
+
+	oldCode := "111111"
+	oldExpires := time.Now().Add(5 * time.Minute)
+	user := &domain.User{
+		ID:                        "u1",
+		Email:                     "test@example.com",
+		Status:                    domain.StatusPending,
+		VerificationCode:          &oldCode,
+		VerificationCodeExpiresAt: &oldExpires,
+		Profile:                   domain.Profile{Username: "Test"},
+		CreatedAt:                 time.Now(),
+		UpdatedAt:                 time.Now(),
+	}
+
+	repo.EXPECT().
+		GetByEmail(ctx, "test@example.com").
+		Return(user, nil).
+		Times(1)
+
+	repo.EXPECT().
+		UpdateUser(ctx, gomock.AssignableToTypeOf(&domain.User{})).
+		DoAndReturn(func(_ context.Context, u *domain.User) error {
+			if u.VerificationCode == nil {
+				t.Fatalf("expected VerificationCode to be set")
+			}
+			if *u.VerificationCode == oldCode {
+				t.Fatalf("expected new verification code, got same as old")
+			}
+			if u.VerificationCodeExpiresAt == nil {
+				t.Fatalf("expected VerificationCodeExpiresAt to be set")
+			}
+			if u.UpdatedAt.IsZero() {
+				t.Fatalf("expected UpdatedAt to be set")
+			}
+			if u.Status != domain.StatusPending {
+				t.Fatalf("expected Status to remain pending, got %q", u.Status)
+			}
+			return nil
+		}).
+		Times(1)
+
+	err := uc.ResendVerificationEmail(ctx, "test@example.com")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
