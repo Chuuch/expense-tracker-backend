@@ -39,8 +39,7 @@ func (u *UserUsecase) Register(
 	ctx context.Context,
 	email string,
 	password string,
-	firstName string,
-	lastName string,
+	username string,
 	phone string,
 	address string,
 	city string,
@@ -64,8 +63,7 @@ func (u *UserUsecase) Register(
 		id,
 		email,
 		string(hashed),
-		firstName,
-		lastName,
+		username,
 		phone,
 		address,
 		city,
@@ -132,8 +130,7 @@ func (u *UserUsecase) GetByID(ctx context.Context, id string) (*domain.User, err
 func (u *UserUsecase) UpdateUser(
 	ctx context.Context,
 	id string,
-	firstName string,
-	lastName string,
+	username string,
 	phone string,
 	address string,
 	city string,
@@ -147,8 +144,7 @@ func (u *UserUsecase) UpdateUser(
 	}
 
 	user.Profile = domain.Profile{
-		FirstName: firstName,
-		LastName:  lastName,
+		Username: username,
 		Phone:     phone,
 		Address:   address,
 		City:      city,
