@@ -13,6 +13,7 @@ type UserUsecase interface {
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)
 	UpdateUser(ctx context.Context, id, username, phone, address, city, state, zip, country string) (*domain.User, error)
 	DeleteUser(ctx context.Context, id string) error
+	VerifyEmail(ctx context.Context, email, code string) (*domain.User, error)
 }
 
 type RefreshTokenUsecase interface {
