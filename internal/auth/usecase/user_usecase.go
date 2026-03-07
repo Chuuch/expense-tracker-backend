@@ -26,12 +26,14 @@ var (
 )
 
 type UserUsecase struct {
-	userRepo interfaces.UserRepository
+	userRepo             interfaces.UserRepository
+	verificationEnqueuer interfaces.VerificationEmailEnqueuer
 }
 
-func NewUserUsecase(userRepo interfaces.UserRepository) *UserUsecase {
+func NewUserUsecase(userRepo interfaces.UserRepository, verificationEnqueuer interfaces.VerificationEmailEnqueuer) *UserUsecase {
 	return &UserUsecase{
-		userRepo: userRepo,
+		userRepo:             userRepo,
+		verificationEnqueuer: verificationEnqueuer,
 	}
 }
 
@@ -87,6 +89,10 @@ func (u *UserUsecase) Register(
 			return nil, ErrUserAlreadyExists
 		}
 		return nil, fmt.Errorf("usecase.CreateUser: %w", err)
+	}
+
+	if u.verificationEnqueuer != nil {
+		_ = u.verificationEnqueuer.EnqueueSendVerificationEmail(ctx, createdUser.ID)
 	}
 
 	return createdUser, nil
