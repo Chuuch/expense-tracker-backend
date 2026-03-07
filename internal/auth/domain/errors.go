@@ -20,4 +20,5 @@ var (
 
 	ErrInvalidVerificationCode = errors.New("invalid verification code")
 	ErrVerificationCodeExpired = errors.New("verification code expired")
+	ErrUserAlreadyActive       = errors.New("user already active")
 )
