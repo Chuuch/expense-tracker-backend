@@ -14,6 +14,7 @@ type UserUsecase interface {
 	UpdateUser(ctx context.Context, id, username, phone, address, city, state, zip, country string) (*domain.User, error)
 	DeleteUser(ctx context.Context, id string) error
 	VerifyEmail(ctx context.Context, email, code string) (*domain.User, error)
+	ResendVerificationEmail(ctx context.Context, email string) error
 }
 
 type RefreshTokenUsecase interface {
