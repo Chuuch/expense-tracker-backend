@@ -45,12 +45,6 @@ func (u *UserUsecase) Register(
 	email string,
 	password string,
 	username string,
-	phone string,
-	address string,
-	city string,
-	state string,
-	zip string,
-	country string,
 ) (*domain.User, error) {
 	existing, _ := u.userRepo.GetByEmail(ctx, email)
 	if existing != nil {
@@ -69,12 +63,6 @@ func (u *UserUsecase) Register(
 		email,
 		string(hashed),
 		username,
-		phone,
-		address,
-		city,
-		state,
-		zip,
-		country,
 	)
 
 	code, err := utils.GenerateVerificationCode()
@@ -208,12 +196,6 @@ func (u *UserUsecase) UpdateUser(
 	ctx context.Context,
 	id string,
 	username string,
-	phone string,
-	address string,
-	city string,
-	state string,
-	zip string,
-	country string,
 ) (*domain.User, error) {
 	user, err := u.userRepo.GetByID(ctx, id)
 	if err != nil || user == nil {
@@ -222,12 +204,6 @@ func (u *UserUsecase) UpdateUser(
 
 	user.Profile = domain.Profile{
 		Username: username,
-		Phone:    phone,
-		Address:  address,
-		City:     city,
-		State:    state,
-		Zip:      zip,
-		Country:  country,
 	}
 
 	user.UpdatedAt = time.Now()
