@@ -16,6 +16,7 @@ type Config struct {
 	Plaid       PlaidConfig       `mapstructure:",squash"`
 	Redis       RedisConfig       `mapstructure:",squash"`
 	GoogleOAuth GoogleOAuthConfig `mapstructure:",squash"`
+	Resend      ResendConfig      `mapstructure:",squash"`
 }
 
 type AppConfig struct {
