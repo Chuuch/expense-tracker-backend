@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	analyticshttp "github.com/chuuch/expense-tracker-backend/internal/analytics/adapter/in/http"
@@ -83,7 +84,25 @@ func (a *App) Run(ctx context.Context) error {
 			ContentTypeNosniff: "nosniff",
 			XFrameOptions: "DENY",
 			HSTSMaxAge: 31536000,
-			ContentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' wss:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; sandbox allow-same-origin allow-scripts allow-forms allow-top-navigation allow-popups allow-modals allow-pointer-lock allow-orientation-lock allow-popunder; media-src 'self'; worker-src 'self' blob:; child-src 'self' blob:; prefetch-src 'self' blob:; manifest-src 'self';",
+			ContentSecurityPolicy: strings.Join([]string{
+				"default-src 'self'",
+				"script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+				"style-src 'self' 'unsafe-inline'",
+				"img-src 'self' data:",
+				"font-src 'self' data:",
+				"connect-src 'self' wss:",
+				"frame-src 'self'",
+				"object-src 'none'",
+				"base-uri 'self'",
+				"form-action 'self'",
+				"frame-ancestors 'none'",
+				"sandbox allow-same-origin allow-scripts allow-forms allow-top-navigation allow-popups allow-modals allow-pointer-lock allow-orientation-lock allow-popunder",
+				"media-src 'self'",
+				"worker-src 'self' blob:",
+				"child-src 'self' blob:",
+				"prefetch-src 'self' blob:",
+				"manifest-src 'self'",
+			}, "; "),
 		}))
 	}
 
