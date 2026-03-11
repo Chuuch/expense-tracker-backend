@@ -99,19 +99,19 @@ func (h *UserHandler) Login(c *echo.Context) error {
 		}
 		return c.JSON(http.StatusOK, LoginResponse{
 			User:         mapUserToResponse(user),
-			Token:        pair.AccessToken,
+			AccessToken:  pair.AccessToken,
 			RefreshToken: pair.RefreshToken,
 		})
 	}
 
-	token, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
+	accessToken, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to generate token"})
 	}
 
 	return c.JSON(http.StatusOK, LoginResponse{
-		User:  mapUserToResponse(user),
-		Token: token,
+		User:        mapUserToResponse(user),
+		AccessToken: accessToken,
 	})
 }
 
@@ -135,7 +135,7 @@ func (h *UserHandler) Refresh(c *echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, RefreshResponse{
-		Token:        pair.AccessToken,
+		AccessToken:  pair.AccessToken,
 		RefreshToken: pair.RefreshToken,
 	})
 }
@@ -228,19 +228,19 @@ func (h *UserHandler) GoogleOAuthCallback(c *echo.Context) error {
 		}
 		return c.JSON(http.StatusOK, LoginResponse{
 			User:         mapUserToResponse(user),
-			Token:        pair.AccessToken,
+			AccessToken:  pair.AccessToken,
 			RefreshToken: pair.RefreshToken,
 		})
 	}
 
-	token, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
+	accessToken, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to generate token"})
 	}
 
 	return c.JSON(http.StatusOK, LoginResponse{
 		User:  mapUserToResponse(user),
-		Token: token,
+		AccessToken: accessToken,
 	})
 }
 
@@ -282,19 +282,19 @@ func (h *UserHandler) GoogleMobileLogin(c *echo.Context) error {
 		}
 		return c.JSON(http.StatusOK, LoginResponse{
 			User:         mapUserToResponse(user),
-			Token:        pair.AccessToken,
+			AccessToken:  pair.AccessToken,
 			RefreshToken: pair.RefreshToken,
 		})
 	}
 
-	token, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
+	accessToken, err := h.tokenUsecase.GenerateToken(user, h.cfg.Auth.AccessTokenTTL)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, httperrors.Response{Error: "Failed to generate token"})
 	}
 
 	return c.JSON(http.StatusOK, LoginResponse{
 		User:  mapUserToResponse(user),
-		Token: token,
+		AccessToken: accessToken,
 	})
 }
 

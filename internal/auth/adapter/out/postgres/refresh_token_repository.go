@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	postgresdb "github.com/chuuch/expense-tracker-backend/internal/storage/postgres/sqlc"
 	"github.com/chuuch/expense-tracker-backend/internal/auth/domain"
+	postgresdb "github.com/chuuch/expense-tracker-backend/internal/storage/postgres/sqlc"
 )
 
 type RefreshTokenRepository struct {
@@ -25,13 +25,13 @@ func (r *RefreshTokenRepository) Create(ctx context.Context, token *domain.Refre
 	}
 
 	return r.q.CreateRefreshToken(ctx, postgresdb.CreateRefreshTokenParams{
-		ID: token.ID,
-		UserID: token.UserID,
-		TokenHash: token.TokenHash,
-		ExpiresAt: token.ExpiresAt,
-		RevokedAt: toNullTime(token.RevokedAt),
+		ID:         token.ID,
+		UserID:     token.UserID,
+		TokenHash:  token.TokenHash,
+		ExpiresAt:  token.ExpiresAt,
+		RevokedAt:  toNullTime(token.RevokedAt),
 		ReplacedBy: toNullString(token.ReplacedBy),
-		CreatedAt: token.CreatedAt,
+		CreatedAt:  token.CreatedAt,
 	})
 }
 
@@ -49,7 +49,7 @@ func (r *RefreshTokenRepository) GetByHash(ctx context.Context, tokenHash string
 
 func (r *RefreshTokenRepository) Revoke(ctx context.Context, id string, replacedBy *string) error {
 	return r.q.RevokeRefreshToken(ctx, postgresdb.RevokeRefreshTokenParams{
-		ID: id,
+		ID:         id,
 		ReplacedBy: toNullString(replacedBy),
 	})
 }
@@ -72,13 +72,13 @@ func toDomainRefreshToken(t postgresdb.RefreshToken) *domain.RefreshToken {
 	}
 
 	return &domain.RefreshToken{
-		ID: t.ID,
-		UserID: t.UserID,
-		TokenHash: t.TokenHash,
-		ExpiresAt: t.ExpiresAt,
-		RevokedAt: revokedAt,
+		ID:         t.ID,
+		UserID:     t.UserID,
+		TokenHash:  t.TokenHash,
+		ExpiresAt:  t.ExpiresAt,
+		RevokedAt:  revokedAt,
 		ReplacedBy: replacedBy,
-		CreatedAt: t.CreatedAt,
+		CreatedAt:  t.CreatedAt,
 	}
 }
 
