@@ -459,7 +459,7 @@ func TestRefresh_Success_Returns200AndPair(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("failed to unmarshal response: %v", err)
 	}
-	if resp.Token != "at-new" || resp.RefreshToken != "rt-new" {
+	if resp.AccessToken != "at-new" || resp.RefreshToken != "rt-new" {
 		t.Fatalf("unexpected response: %+v", resp)
 	}
 }
